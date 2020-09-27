@@ -1,0 +1,119 @@
+<template>
+	<view class="u-wrap">
+		<view class="u-menu-wrap">
+			<!-- #ifdef MP-WEIXIN-->
+			<scroll-view :scroll-top="scrollRightTop" scroll-y scroll-with-animation class="right-box">
+			<!-- #endif -->
+			<!-- #ifdef APP-PLUS-->
+			<scroll-view :scroll-top="scrollRightTop" scroll-y="true" class="right-box" :style="{height:scrollviewHigh+'px'}">
+			<!-- #endif -->
+				<view class="page-view">
+					<view class="class-item" :id="'item' + i" v-for="(item , i) in goods" :key="i">
+						<view class="item-title">
+							<text>{{item.type}}</text>
+						</view>
+
+						<u-cell-group>
+							<u-cell-item :title="product.pdName" :label="'库存：'+product.num" :arrow="false" :value="product.show?'已显示':'已隐藏'"
+							 v-for="(product, index) in item.products" :key="index">
+								<u-switch slot="right-icon" v-model="product.show" @change="change(product)" :vibrate-short="true"></u-switch>
+							</u-cell-item>
+						</u-cell-group>
+
+					</view>
+				</view>
+			</scroll-view>
+
+		</view>
+	</view>
+</template>
+
+<script>
+	var that
+	export default {
+		data() {
+			return {
+				scrollRightTop: 0,
+				goods: [],
+				scrollviewHigh:0
+			}
+		},
+		onLoad() {
+			that = this
+			this.getList();
+		},
+		onReady() {
+			//#ifdef APP-PLUS
+			this.getPhoneHeight();
+			//#endif
+		},
+		methods: {
+			change(product) {
+				this.$Request.getT('/changeStatus?id='+product.id+'&isShow='+product.show).then(res => {
+					if (res.status == 200) {
+						if(product.show)
+							this.$queue.showToast("显示成功");
+						else
+							this.$queue.showToast("隐藏成功");
+						uni.setStorageSync('reloadList',true);
+					} else {
+						this.$queue.showToast(res.msg);
+					}
+				})
+				
+			},
+			getList() {
+				this.$Request.getT('/getList').then(res => {
+					if (res.status == 200) {
+						var goods = res.data;
+						that.goods = goods;
+					} else {
+						this.$queue.showToast(res.msg);
+					}
+				})
+			},
+			getPhoneHeight() {
+				uni.getSystemInfo({
+					success(res) {
+						that.scrollviewHigh = res.windowHeight
+					}
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+	.u-wrap {
+		height: calc(100vh);
+		/* #ifdef H5 */
+		height: calc(100vh - var(--window-top));
+		/* #endif */
+		display: flex;
+		flex-direction: column;
+	}
+
+	.u-menu-wrap {
+		flex: 1;
+		display: flex;
+		overflow: hidden;
+	}
+
+	.page-view {
+		padding: 16rpx;
+	}
+
+	.class-item {
+		margin-bottom: 30rpx;
+		background-color: #fff;
+		padding: 16rpx;
+		border-radius: 8rpx;
+	}
+
+	.item-title {
+		font-size: 26rpx;
+		color: $u-main-color;
+		font-weight: bold;
+		margin-bottom: 20rpx;
+	}
+</style>

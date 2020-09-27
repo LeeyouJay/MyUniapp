@@ -1,0 +1,77 @@
+{
+	"easycom": {
+		"^u-(.*)": "@/uview-ui/components/u-$1/u-$1.vue"
+	},
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationBarTextStyle": "black",
+				"enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none",
+					"scrollIndicator": "none",
+					"titleNView": false
+				}
+			}
+		}
+        ,{
+            "path" : "pages/my/my",
+            "style" : {}
+        },
+		{
+		    "path" : "pages/my/index",
+		    "style" : {
+				"enablePullDownRefresh": true  //设置为true表示当前页面开启下拉刷新
+			}
+		},
+		{
+		    "path" : "pages/my/preCheck",
+		    "style" : {}
+		},
+		{
+		    "path" : "pages/my/bleConnect",
+		    "style" : {}
+		}
+        ,{
+            "path" : "pages/my/addProduct",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/my/productInfo",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/my/switchList",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/my/toShare",
+            "style" : {}
+        }
+    ],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarBackgroundColor": "#5778fc",
+		"backgroundColor": "#0055b8"
+	},
+	"tabBar": {
+	    "color": "#909399",
+	    "selectedColor": "#303133",
+	    "borderStyle": "black",
+	    "backgroundColor": "#ffffff",
+	    "list": [{
+	        "pagePath": "pages/my/index",
+			"iconPath": "static/js.png",
+			"selectedIconPath": "static/js_select.png",
+	        "text": "列表"
+	    }, {
+	        "pagePath": "pages/my/my",
+			"iconPath": "static/template.png",
+			"selectedIconPath": "static/template_select.png",
+	        "text": "详情"
+	    }]
+	}
+}

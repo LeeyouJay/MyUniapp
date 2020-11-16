@@ -45,11 +45,15 @@
         }
         ,{
             "path" : "pages/my/switchList",
-            "style" : {}
+            "style" : {
+				"enablePullDownRefresh": true
+			}
         }
         ,{
             "path" : "pages/my/toShare",
-            "style" : {}
+            "style" : {
+				"enablePullDownRefresh": true 
+			}
         }
     ],
 	"globalStyle": {

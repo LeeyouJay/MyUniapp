@@ -26,8 +26,9 @@
 						<view class="item-title">
 							<text>{{item.type}}</text>
 						</view>
+						<!-- 滑动块 -->
 						<!-- #ifdef MP-WEIXIN-->
-						<u-swipe-action :show="product.hide" v-for="(product, index) in item.products" :index="i" :secondIndex="index"
+						<u-swipe-action :show="product.hide" v-for="(product, index) in item.products" :index="i" :secondIndex="index" :disabled = "product.move"
 						 :key="index" :options="product.options" @click="click" @open="open" v-if="product.show">
 							<view :class="[product.value > 0 ? 'food border' : 'food']">
 						<!-- #endif -->
@@ -51,11 +52,12 @@
 										<!-- #endif -->
 										<!-- #ifdef MP-WEIXIN-->
 										<view class="food-title">{{product.pdName}}</view>
-										<view class="food-num">库存:{{product.num}}</view>
+										<view class="food-num">库存:{{product.num}}({{product.unit}})</view>
 										<!-- #endif -->
 
 										<view class="food-btm">
 											<text class="food-price">￥{{product.price}}</text>
+											<!-- 步进器 -->
 											<u-number-box v-model="product.value" @change="valChange(product)" @minus="minus(product)" @plus="plus(product)"
 											 :step="step" :disabled-input="disabledInput"></u-number-box>
 										</view>
@@ -78,7 +80,7 @@
 				<u-table>
 					<u-tr>
 						<u-th>品种</u-th>
-						<u-th>数量(包)x单价</u-th>
+						<u-th>数量x单价</u-th>
 						<u-th>金额</u-th>
 					</u-tr>
 					<u-tr v-for="(product,index) in selectGoods" :key="index">
@@ -110,6 +112,7 @@
 			<view class="right" style="width: 50%;">
 				<view class="buy btn u-line-1" style="margin-left: 50%;" @click="toCheck">查看打印</view>
 			</view>
+		</view>
 		</view>
 	</view>
 </template>
@@ -172,6 +175,7 @@
 			}
 		},
 		onShow() {
+			that = this;
 			var flag = uni.getStorageSync('reloadList');
 			if (flag) {
 				this.getList();
@@ -303,6 +307,11 @@
 				})
 			},
 			valChange(product) {
+				if(product.value > 0)
+					product.move = true;
+				else
+					product.move = false;
+					
 				if (that.productTemp != product.id) {
 					that.productTemp = product.id;
 					that.cache = product.num;
@@ -495,6 +504,7 @@
 							for (var j = 0; j < goods[i].products.length; j++) {
 								var product = goods[i].products[j]
 								product.hide = false
+								product.move = false
 								if (product.fromApp == 1)
 									product.options = that.options1
 								else

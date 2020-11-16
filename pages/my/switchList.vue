@@ -2,14 +2,14 @@
 	<view class="u-wrap">
 		<view class="u-menu-wrap">
 			<!-- #ifdef MP-WEIXIN-->
-			<scroll-view :scroll-top="scrollRightTop" scroll-y scroll-with-animation class="right-box">
+			<!-- <scroll-view :scroll-top="scrollRightTop" scroll-y scroll-with-animation class="right-box"> -->
 			<!-- #endif -->
 			<!-- #ifdef APP-PLUS-->
-			<scroll-view :scroll-top="scrollRightTop" scroll-y="true" class="right-box" :style="{height:scrollviewHigh+'px'}">
+			<!-- <scroll-view :scroll-top="scrollRightTop" scroll-y="true" class="right-box" :style="{height:scrollviewHigh+'px'}"> -->
 			<!-- #endif -->
 				<view class="page-view">
 					<view class="class-item" :id="'item' + i" v-for="(item , i) in goods" :key="i">
-						<view class="item-title">
+						<view class="item-title border">
 							<text>{{item.type}}</text>
 						</view>
 
@@ -22,7 +22,7 @@
 
 					</view>
 				</view>
-			</scroll-view>
+			<!-- </scroll-view> -->
 
 		</view>
 	</view>
@@ -46,6 +46,12 @@
 			//#ifdef APP-PLUS
 			this.getPhoneHeight();
 			//#endif
+		},
+		onPullDownRefresh() {
+			setTimeout(function() {
+				that.getList();
+				uni.stopPullDownRefresh(); //停止下拉刷新动画
+			}, 1000);
 		},
 		methods: {
 			change(product) {
@@ -83,7 +89,7 @@
 	}
 </script>
 
-<style>
+<style lang="scss" scoped>
 	.u-wrap {
 		height: calc(100vh);
 		/* #ifdef H5 */
@@ -96,11 +102,12 @@
 	.u-menu-wrap {
 		flex: 1;
 		display: flex;
-		overflow: hidden;
+		/* overflow: hidden; */
 	}
 
 	.page-view {
 		padding: 16rpx;
+		width: 100%;
 	}
 
 	.class-item {
@@ -111,9 +118,13 @@
 	}
 
 	.item-title {
-		font-size: 26rpx;
+		font-size: 36rpx;
 		color: $u-main-color;
 		font-weight: bold;
-		margin-bottom: 20rpx;
+		padding: 20rpx ;
+	}
+	.border {
+		background-color: #ECF5FF;
+		
 	}
 </style>

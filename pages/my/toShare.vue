@@ -16,9 +16,12 @@
 						{{item.pdName}}
 					</view>
 					<view class="demo-tag">
-						<view class="demo-tag-text">
+						<view class="demo-tag-text" :class="[item.type == '水稻' ? 'rice' : item.type == '玉米' ? 'corn' :  item.type == '农药' ? 'pesticide' : 'peanut']">
 							{{item.type}}
 						</view>
+					</view>
+					<view class="demo-shop">
+						规格：{{item.unit}}
 					</view>
 					<view class="demo-price">
 						￥{{item.price}}
@@ -39,9 +42,12 @@
 						{{item.pdName}}
 					</view>
 					<view class="demo-tag">
-						<view class="demo-tag-text">
+						<view class="demo-tag-text" :class="[item.type == '水稻' ? 'rice' : item.type == '玉米' ? 'corn' :  item.type == '农药' ? 'pesticide' : 'peanut']">
 							{{item.type}}
 						</view>
+					</view>
+					<view class="demo-shop">
+						规格：{{item.unit}}
 					</view>
 					<view class="demo-price">
 						￥{{item.price}}
@@ -65,6 +71,19 @@
 			that = this;
 			this.getList();
 		},
+		onPullDownRefresh() {
+			that.clear();
+			setTimeout(function() {
+				that.getList();
+				uni.stopPullDownRefresh(); //停止下拉刷新动画
+			}, 1000);
+		},
+		onShareAppMessage() {
+			return {
+				title: '种子列表',
+				path: 'pages/my/toShare'
+			}
+		},
 		methods: {
 			getList() {
 				this.$Request.getT('/getEveryProducts').then(res => {
@@ -76,11 +95,13 @@
 							product.img = that.ip + product.img;
 						}
 						that.goods = goods;
-						console.log(that.goods)
 					} else {
 						this.$queue.showToast(res.msg);
 					}
 				})
+			},
+			clear() {
+				this.$refs.uWaterfall.clear();
 			},
 			productInfo(id) {
 				uni.navigateTo({
@@ -141,8 +162,8 @@
 	}
 
 	.demo-tag-text {
-		border: 1px solid #909399;
-		color: #909399;
+		// border: 1px solid #2979ff;
+		// color: #2979ff;
 		//margin-left: 10px;
 		border-radius: 50rpx;
 		line-height: 1;
@@ -151,6 +172,22 @@
 		align-items: center;
 		border-radius: 50rpx;
 		font-size: 20rpx;
+	}
+	.rice {
+		border: 1px solid #2979ff;
+		color: #2979ff;
+	}
+	.corn {
+		border: 1px solid #ff9900;
+		color: #ff9900;
+	}
+	.pesticide{
+		border: 1px solid #fa3534;
+		color: #fa3534;
+	}
+	.peanut{
+		border: 1px solid #19be6b;
+		color: #19be6b;
 	}
 
 	.demo-price {

@@ -23,6 +23,23 @@
 		</u-form>
 
 		<u-divider></u-divider>
+		<u-row gutter="16" >
+			<u-col span="4">
+				<view class="goods-list">
+					品种名称
+				</view>
+			</u-col>
+			<u-col span="4">
+				<view class="goods-list">
+					数量x单价
+				</view>
+			</u-col>
+			<u-col span="4">
+				<view class="goods-list">
+					小计
+				</view>
+			</u-col>
+		</u-row>
 		<u-row gutter="16" v-for="(row,index) in selectGoods " :key="index">
 			<u-col span="4">
 				<view class="goods-list">
@@ -31,7 +48,7 @@
 			</u-col>
 			<u-col span="4">
 				<view class="goods-list">
-					{{row.value}}*{{row.price}}
+					{{row.value}}x{{row.price}}
 				</view>
 			</u-col>
 			<u-col span="4">
@@ -338,7 +355,7 @@
 				command.setAbsolutePrintPosition(200);
 				command.setText("单价");
 				command.setAbsolutePrintPosition(270);
-				command.setText("金额");
+				command.setText("小计");
 				command.setAbsolutePrintPosition(380);
 				command.setPrint()
 				var total = 0;

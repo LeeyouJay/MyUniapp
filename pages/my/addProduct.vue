@@ -24,6 +24,10 @@
 			 prop="num">
 				<u-input  placeholder="请输入剩余库存数量" v-model="model.num" type="digit"></u-input>
 			</u-form-item>
+			
+			<u-form-item :rightIconStyle="{color: '#888', fontSize: '40rpx'}" right-icon="bookmark" label="规格" label-width="150">
+				<u-input  placeholder="如:两斤/包" v-model="model.unit" type="text"></u-input>
+			</u-form-item>
 
 			<u-form-item label="上传图片" prop="photo" label-width="150">
 				<u-upload ref="uUpload" width="160" :max-count="1" :max-size="3 * 1024 * 1024" 
@@ -55,6 +59,7 @@
 					price: '',
 					cost: '',
 					num: '',
+					unit:'',
 					photo: ''
 				},
 				rules: {
@@ -167,6 +172,7 @@
 					setTimeout(function() {
 						that.$refs.uUpload.clear();
 						that.model.photo = '';
+						that.loading = false;
 					}, 1000)
 				}
 					

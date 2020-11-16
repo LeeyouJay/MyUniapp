@@ -9,16 +9,16 @@
 			<view class="context">{{product.pdName}}</view>
 		</view>
 		<view class="item">
-			<view class="label">生育期：</view>
-			<view class="context">{{product.period}}天</view>
+			<view class="label">生育期(天)：</view>
+			<view class="context">{{product.periodMin}}-{{product.periodMax}}</view>
 		</view>
 		<view class="item">
 			<view class="label">株高(cm)：</view>
 			<view class="context">{{product.height}}</view>
 		</view>
 		<view class="item">
-			<view class="label">亩产量：</view>
-			<view class="context">{{product.yield}}公斤</view>
+			<view class="label">亩产量(公斤)：</view>
+			<view class="context">{{product.yield}}</view>
 		</view>
 
 		<u-divider>性状特征</u-divider>
@@ -95,7 +95,7 @@
 
 	.label {
 		height: 40rpx;
-		width: 180rpx;
+		width: 185rpx;
 		font-weight: 400;
 		float: left;
 		display: block;

@@ -30,6 +30,7 @@
 	export default {
 		data() {
 			return {
+				ip:this.$Request.config("APIHOST"),
 				remember:true,
 				username: '', //用户
 				password: '', //密码
@@ -42,6 +43,12 @@
 		onLoad() {
 			this.username = uni.getStorageSync("username");
 			this.password = uni.getStorageSync("password");
+			uni.removeStorageSync('token');
+			//#ifdef MP-WEIXIN
+			//this.weixinLogin()
+			//#endif 
+			
+			
 		},
 		onShareAppMessage() {
 			return {
@@ -97,7 +104,45 @@
 					.catch(res => {
 						uni.hideLoading();
 					});
+			},
+			
+			weixinLogin(){
+				// uni.login({
+				// 	provider: 'weixin',
+				// 	success: function (loginRes) {
+				// 		console.log(loginRes);
+				// 	    // 获取用户信息
+				// 	    uni.getUserInfo({
+				// 			provider: 'weixin',
+				// 			success: function (infoRes) {
+				// 				console.log('用户昵称为：' + infoRes.userInfo.nickName);
+				// 				console.log(infoRes.userInfo);
+				// 			}
+				// 	    });
+				// 	},
+				// 	fail(e) {
+				// 		console.log(e)
+				// 	}
+				// });
+				uni.login({
+				  provider: 'weixin',
+				  success: function (loginRes) {
+					  uni.request({
+					  	url:that.ip + '/wxLogin?code='+loginRes.code,
+						method:'GET',
+						success(res) {
+							console.log(res.data)
+						},
+						fail(e) {
+							console.log(e)
+						}
+					  })
+					   console.log(loginRes);
+					 
+				  }
+				});
 			}
+			
 		}
 	};
 </script>

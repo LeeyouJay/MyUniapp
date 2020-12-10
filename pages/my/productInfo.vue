@@ -24,6 +24,10 @@
 		<u-divider>性状特征</u-divider>
 		<view class="content">
 			<u-parse :html="contents" :tag-style="style" :show-with-animation="true" ></u-parse>
+			<view style="text-align: right;margin: 20rpx 0;" v-if="token">
+				<u-button :ripple="true" type="primary" @click="toEdit(product)" size="medium">重新编辑</u-button>
+			</view>
+			<view style="height: 20rpx;"></view>
 		</view>
 	</view>
 </template>
@@ -33,7 +37,6 @@
 	export default {
 		data() {
 			return {
-				productId:'',
 				ip: this.$Request.config("APIHOST"),
 				product: {},
 				contents: '',
@@ -41,30 +44,35 @@
 				style: {
 					p: 'font-size:32rpx',
 					img: 'width: 100%'
-				}
+				},
+				token:uni.getStorageSync("token")
 			}
 		},
 		onLoad(option) {
 			that = this;
 			var id = option.id;
-			that.productId = id;
 			that.findById(id);
 		},
 		onShareAppMessage() {
 			return {
 				title: that.product.pdName,
-				path: 'pages/my/productInfo?id='+that.productId
+				path: 'pages/my/productInfo?id='+that.product.id
 			}
 		},
 		methods: {
 			findById(id) {
-				this.$Request.getT('/findById?id=' + id).then(res => {
+				this.$Request.getT('/findById/' + id).then(res => {
 					if (res.status == 200) {
 						that.product = res.data
 						that.contents = that.product.characters;
 						that.avatar = that.ip + res.data.img;
 					} else
 						this.$queue.showToast(res.msg);
+				})
+			},
+			toEdit(product){
+				uni.navigateTo({
+					url: './editInfo?id=' + product.id
 				})
 			}
 		}
@@ -95,7 +103,7 @@
 
 	.label {
 		height: 40rpx;
-		width: 185rpx;
+		width: 195rpx;
 		font-weight: 400;
 		float: left;
 		display: block;

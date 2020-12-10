@@ -3,14 +3,14 @@ import App from './App'
 import store from './store'
 import HttpRequest from './common/httpRequest'
 import queue from './common/queue'
-import getCode from './components/get-code'
+//import getCode from './components/get-code'
 
 import uView from 'uview-ui'
 Vue.use(uView);
 
 Vue.config.productionTip = false;
 
-Vue.component('getCode', getCode);
+//Vue.component('getCode', getCode);
 
 App.mpType = 'app';
 Vue.prototype.$Request = HttpRequest;

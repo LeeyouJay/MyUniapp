@@ -43,6 +43,10 @@
             "path" : "pages/my/productInfo",
             "style" : {}
         }
+		,{
+		    "path" : "pages/my/editInfo",
+		    "style" : {}
+		}
         ,{
             "path" : "pages/my/switchList",
             "style" : {

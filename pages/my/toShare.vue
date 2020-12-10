@@ -69,6 +69,7 @@
 		},
 		onLoad() {
 			that = this;
+			uni.removeStorageSync('token');
 			this.getList();
 		},
 		onPullDownRefresh() {

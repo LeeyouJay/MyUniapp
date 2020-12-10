@@ -2,7 +2,7 @@
 	<view class="wrap">
 		<u-form :model="model" :rules="rules" ref="uForm" :errorType="errorType">
 			<u-form-item label-width="150" :label-position="labelPosition" label="客户名称" prop="name">
-				<u-input :border="border" placeholder="请输入姓名" v-model="model.name" type="text"></u-input>
+				<u-input :border="border" placeholder="请输入客户姓名" v-model="model.name" type="text"></u-input>
 			</u-form-item>
 			<u-form-item :label-position="labelPosition" label="结算方式" prop="payType" label-width="150">
 				<u-radio-group v-model="radio" @change="radioGroupChange" :width="radioCheckWidth" :wrap="radioCheckWrap">
@@ -18,7 +18,10 @@
 				<u-input :border="border" placeholder="请输入客户手机号" v-model="model.phone" type="number"></u-input>
 			</u-form-item>
 			<u-form-item :label-position="labelPosition" label="收银员" label-width="150" prop="checker">
-				<u-input :border="border" placeholder="请输姓名" v-model="model.checker" type="text"></u-input>
+				<u-input :border="border" placeholder="请输您的姓名" v-model="model.checker" type="text"></u-input>
+			</u-form-item>
+			<u-form-item :label-position="labelPosition" label="售后电话" label-width="150" >
+				<u-input :border="border" placeholder="请输售后电话" v-model="model.support" type="number"></u-input>
 			</u-form-item>
 		</u-form>
 
@@ -108,7 +111,8 @@
 					payType: '现金',
 					region: '周鹿街',
 					phone: '',
-					checker: ''
+					checker: '',
+					support:'18177150996'
 				},
 				selectList: [],
 				rules: {
@@ -367,7 +371,7 @@
 					command.setAbsolutePrintPosition(140);
 					command.setText(good.value);
 					command.setAbsolutePrintPosition(200);
-					command.setText(good.price+"元");
+					command.setText(good.price);
 					command.setAbsolutePrintPosition(270);
 					command.setText(good.price*good.value+"元");
 					command.setAbsolutePrintPosition(390);
@@ -384,7 +388,7 @@
 				
 				// 收银员
 				command.rowSpace(120); //间距
-				command.setText("店员："+that.model.checker);
+				command.setText("收银："+that.model.checker);
 				command.setPrint()
 
 				//提示
@@ -398,7 +402,7 @@
 
 				//电话
 				command.setSelectJustification(0); //居左
-				command.setText("售后电话:18177150996");
+				command.setText("售后电话:"+that.model.support);
 				command.setPrint();
 				command.setText("联系地址:马山县周鹿镇中心街桥头路交汇处");
 				command.setPrint();

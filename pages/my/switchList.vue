@@ -55,7 +55,7 @@
 		},
 		methods: {
 			change(product) {
-				this.$Request.getT('/changeStatus?id='+product.id+'&isShow='+product.show).then(res => {
+				this.$Request.getT('/changeStatus/'+product.id+'/'+product.show).then(res => {
 					if (res.status == 200) {
 						if(product.show)
 							this.$queue.showToast("显示成功");

@@ -149,6 +149,12 @@
 						}
 					},
 					{
+						text: '编辑',
+						style: {
+							backgroundColor: '#ffaa00'
+						}
+					},
+					{
 						text: '移除',
 						style: {
 							backgroundColor: '#dd524d'
@@ -156,15 +162,22 @@
 					}
 				],
 				options2: [{
-					text: '隐藏',
-					style: {
-						backgroundColor: '#007aff'
+						text: '隐藏',
+						style: {
+							backgroundColor: '#007aff'
+						}
+					},
+					{
+						text: '编辑',
+						style: {
+							backgroundColor: '#ffaa00'
+						}
 					}
-				}],
+				],
 				scrollviewHigh:0
 			}
 		},
-		onLoad(options) {
+		onLoad() {
 			that = this;
 			this.getList();
 		},
@@ -175,13 +188,20 @@
 			}
 		},
 		onShow() {
-			that = this;
 			var flag = uni.getStorageSync('reloadList');
 			if (flag) {
 				this.getList();
 				uni.removeStorageSync('reloadList');
-			} else
+			} else{
+				for (var i = 0; i < that.goods.length; i++) {
+					for (var j = 0; j < that.goods[i].products.length; j++) {
+						var product = that.goods[i].products[j]
+						product.hide = false
+					}
+				}
 				this.$Request.getT('/user')
+			}
+				
 
 		},
 		onReady() {
@@ -202,10 +222,12 @@
 			//第一层下标，第二层下标，option的下标
 			click(index, secondIndex, idx) {
 				var id = this.goods[index].products[secondIndex].id;
-				if (idx == 1) {
-					that.removeProd(id);
-				} else {
+				if (idx == 0) {
 					that.hideProd(id);
+				} else if(idx == 1) {
+					that.editProduct(id);
+				}else{
+					that.removeProd(id);
 				}
 			},
 			open(index, secondIndex) {
@@ -249,7 +271,7 @@
 					showCancel: true,
 					success: function(res) {
 						if (res.confirm) {
-							that.$Request.getT('/removeProd?id=' + id).then(res => {
+							that.$Request.getT('/removeProd/' + id).then(res => {
 								if (res.status == 200) {
 									that.$queue.showToast('删除成功！')
 									that.getList();
@@ -260,6 +282,11 @@
 							})
 						}
 					}
+				})
+			},
+			editProduct(id){
+				uni.navigateTo({
+					url: './addProduct?id=' + id
 				})
 			},
 			productInfo(id) {

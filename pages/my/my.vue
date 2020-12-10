@@ -39,9 +39,9 @@
 					<text class="item-name">今日收益:</text>
 					<u-count-to :start-val="0" :end-val="earnings" :decimals="2" :font-size="35" :duration="1200"></u-count-to>
 				</view>
-				<!-- <view data-index="0" class="item" hover-class="opcity" :hover-stay-time="150"  @click="toShare()">
+				<!-- <view data-index="0" class="item" hover-class="opcity" :hover-stay-time="150"  @click="toTest()">
 					<u-icon name="rmb" :size="70" color="#2b85e4"></u-icon>
-					<text class="item-name">临时</text>
+					<text class="item-name">测试跳转按钮</text>
 				</view> -->
 			</view>
 		</view>
@@ -90,7 +90,8 @@
 			}
 		},
 		methods: {
-			toShare(){
+			//测试跳转按钮
+			toTest(){
 				uni.navigateTo({
 					url:'./toShare'
 				})

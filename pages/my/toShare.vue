@@ -81,8 +81,8 @@
 		},
 		onShareAppMessage() {
 			return {
-				title: '种子列表',
-				path: 'pages/my/toShare'
+				title: '产品列表',
+				path: '/pages/my/toShare'
 			}
 		},
 		methods: {

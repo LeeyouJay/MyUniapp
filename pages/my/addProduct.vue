@@ -3,7 +3,7 @@
 		<u-form :model="model" :rules="rules" ref="uForm" :errorType="errorType">
 
 			<u-form-item label-width="150" label="品种名称" prop="pdName">
-				<u-input  placeholder="请输入品种名称" v-model="model.pdName" :disabled="lockName" type="text"></u-input>
+				<u-input  placeholder="请输入品种名称" v-model="model.pdName" :disabled="lockName"  maxlength =10 type="text"></u-input>
 			</u-form-item>
 
 			<u-form-item label="类型" prop="typeName" label-width="150">
@@ -12,21 +12,21 @@
 
 			<u-form-item :rightIconStyle="{color: '#888', fontSize: '40rpx'}" right-icon="rmb" label="零售价" label-width="150"
 			 prop="price">
-				<u-input placeholder="请输入零售价格(元/包)" v-model="model.price" type="digit"></u-input>
+				<u-input placeholder="请输入零售价格(元/包)" v-model="model.price" maxlength =10 type="digit"></u-input>
 			</u-form-item>
 
 			<u-form-item :rightIconStyle="{color: '#888', fontSize: '40rpx'}" right-icon="rmb" label="进货价" label-width="150"
 			 prop="cost">
-				<u-input  placeholder="请输入进货价格(元/包)" v-model="model.cost" type="digit"></u-input>
+				<u-input  placeholder="请输入进货价格(元/包)" v-model="model.cost" maxlength =10 type="digit"></u-input>
 			</u-form-item>
 
 			<u-form-item :rightIconStyle="{color: '#888', fontSize: '40rpx'}" right-icon="car" label="库存(包)" label-width="150"
 			 prop="num">
-				<u-input  placeholder="请输入剩余库存数量" v-model="model.num" type="digit"></u-input>
+				<u-input  placeholder="请输入剩余库存数量" v-model="model.num" maxlength =10 type="digit"></u-input>
 			</u-form-item>
 			
 			<u-form-item :rightIconStyle="{color: '#888', fontSize: '40rpx'}" right-icon="bookmark" label="规格" prop="unit" label-width="150">
-				<u-input  placeholder="如:两斤/包" v-model="model.unit" type="text"></u-input>
+				<u-input  placeholder="如:两斤/包" v-model="model.unit" maxlength =10 type="text"></u-input>
 			</u-form-item>
 
 			<u-form-item label="上传图片" prop="photo" label-width="150">
@@ -263,7 +263,7 @@
 						setTimeout(function() {
 							uni.navigateBack({
 								success: function() {
-									beforePage.$vm.clearFromBack(); 
+									beforePage.$vm.clearData(); 
 								}
 							})
 						}, 1500)

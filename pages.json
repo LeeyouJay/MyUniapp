@@ -47,6 +47,10 @@
 		    "path" : "pages/my/editInfo",
 		    "style" : {}
 		}
+		,{
+		    "path" : "pages/my/editBase",
+		    "style" : {}
+		}
         ,{
             "path" : "pages/my/switchList",
             "style" : {

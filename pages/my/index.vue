@@ -183,8 +183,9 @@
 		},
 		onShareAppMessage() {
 			return {
-				title: '种子列表',
-				path: 'pages/my/toShare'
+				title: '产品列表',
+				//imageUrl:'https://chenyi.ink:8600/Arslinth/static/wallhaven.jpg',
+				path: '/pages/my/toShare'
 			}
 		},
 		onShow() {
@@ -250,7 +251,7 @@
 					showCancel: true,
 					success: function(res) {
 						if (res.confirm) {
-							that.$Request.getT('/changeStatus?id=' + id + '&isShow=' + false).then(res => {
+							that.$Request.getT('/changeStatus/' + id + '/' + false).then(res => {
 								if (res.status == 200) {
 									that.$queue.showToast("隐藏成功");
 									that.getList();

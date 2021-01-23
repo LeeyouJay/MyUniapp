@@ -18,17 +18,17 @@
 			}
 		}
         ,{
-            "path" : "pages/my/my",
-            "style" : {}
+            "path" : "pages/front/index",
+            "style" : {
+            	"enablePullDownRefresh": true  //设置为true表示当前页面开启下拉刷新
+            }
         },
 		{
 		    "path" : "pages/my/index",
-		    "style" : {
-				"enablePullDownRefresh": true  //设置为true表示当前页面开启下拉刷新
-			}
+			"style":{}
 		},
 		{
-		    "path" : "pages/my/preCheck",
+		    "path" : "pages/front/preCheck",
 		    "style" : {}
 		},
 		{
@@ -40,15 +40,15 @@
             "style" : {}
         }
         ,{
-            "path" : "pages/my/productInfo",
+            "path" : "pages/front/productInfo",
             "style" : {}
         }
 		,{
-		    "path" : "pages/my/editInfo",
+		    "path" : "pages/front/editInfo",
 		    "style" : {}
 		}
 		,{
-		    "path" : "pages/my/editBase",
+		    "path" : "pages/front/editBase",
 		    "style" : {}
 		}
         ,{
@@ -58,11 +58,22 @@
 			}
         }
         ,{
-            "path" : "pages/my/toShare",
+            "path" : "pages/front/toShare",
             "style" : {
 				"enablePullDownRefresh": true 
 			}
         }
+		,{
+		    "path" : "pages/orders/index",
+		    "style" : {
+				"enablePullDownRefresh": true 
+			}
+		}
+		,{
+		    "path" : "pages/orders/wholeSale",
+		    "style" : {}
+		}
+		
     ],
 	"globalStyle": {
 		"navigationBarTextStyle": "white",
@@ -75,15 +86,22 @@
 	    "borderStyle": "black",
 	    "backgroundColor": "#ffffff",
 	    "list": [{
-	        "pagePath": "pages/my/index",
-			"iconPath": "static/js.png",
-			"selectedIconPath": "static/js_select.png",
-	        "text": "列表"
-	    }, {
-	        "pagePath": "pages/my/my",
-			"iconPath": "static/template.png",
-			"selectedIconPath": "static/template_select.png",
-	        "text": "详情"
+	        "pagePath": "pages/front/index"
+			,"iconPath": "static/js.png"
+			,"selectedIconPath": "static/js_select.png"
+	        //,"text": "列表"
+	    },
+		{
+		    "pagePath": "pages/orders/index"
+			,"iconPath": "static/component.png"
+			,"selectedIconPath": "static/component_select.png"
+		    //,"text": "列表"
+		},
+		{
+	        "pagePath": "pages/my/index"
+			,"iconPath": "static/template.png"
+			,"selectedIconPath": "static/template_select.png"
+	        //,"text": "详情"
 	    }]
 	}
 }

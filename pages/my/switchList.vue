@@ -1,12 +1,6 @@
 <template>
 	<view class="u-wrap">
 		<view class="u-menu-wrap">
-			<!-- #ifdef MP-WEIXIN-->
-			<!-- <scroll-view :scroll-top="scrollRightTop" scroll-y scroll-with-animation class="right-box"> -->
-			<!-- #endif -->
-			<!-- #ifdef APP-PLUS-->
-			<!-- <scroll-view :scroll-top="scrollRightTop" scroll-y="true" class="right-box" :style="{height:scrollviewHigh+'px'}"> -->
-			<!-- #endif -->
 				<view class="page-view">
 					<view class="class-item" :id="'item' + i" v-for="(item , i) in goods" :key="i">
 						<view class="item-title border">
@@ -22,8 +16,6 @@
 
 					</view>
 				</view>
-			<!-- </scroll-view> -->
-
 		</view>
 	</view>
 </template>

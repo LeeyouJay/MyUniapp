@@ -92,7 +92,6 @@ module.exports = {
 					"Authorization": token
 				},
 				success: function(result) {
-					console.log(result)
 					if (result.data.status == 403) {
 						uni.reLaunch({
 							url: '/pages/login/login'

@@ -95,7 +95,7 @@
 							}
 							
 							uni.switchTab({
-								url: '/pages/my/index',
+								url: '/pages/front/index',
 							})
 						} else {
 							this.$queue.showToast(res.msg);

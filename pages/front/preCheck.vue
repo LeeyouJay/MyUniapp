@@ -5,7 +5,7 @@
 				<u-input :border="border" placeholder="请输入客户姓名" v-model="model.name" type="text"></u-input>
 			</u-form-item>
 			<u-form-item :label-position="labelPosition" label="结算方式" prop="payType" label-width="150">
-				<u-radio-group v-model="radio" @change="radioGroupChange" :width="radioCheckWidth" :wrap="radioCheckWrap">
+				<u-radio-group v-model="radio" @change="radioGroupChange">
 					<u-radio shape="circle" v-model="item.checked" v-for="(item, index) in radioList" :key="index" :name="item.name">{{ item.name }}</u-radio>
 				</u-radio-group>
 			</u-form-item>
@@ -72,7 +72,7 @@
 				</view>
 			</u-col>
 		</u-row>
-		<view>
+		<view style="margin-bottom: 10%;">
 			<u-button :ripple="true" type="primary" @click="submit" size="medium">提交</u-button>
 			<view style="float: right;">
 				<u-button :ripple="true" type="primary" :loading="isReceiptSend" :disabled="isReceiptSend" @click="toPrint" size="medium">打印</u-button>
@@ -181,8 +181,6 @@
 				radio: '现金',
 				actionSheetShow: false,
 				selectShow: false,
-				radioCheckWidth: 'auto',
-				radioCheckWrap: false,
 				labelPosition: 'left',
 				codeTips: '',
 				errorType: ['message'],
@@ -227,7 +225,7 @@
 			},
 			toConnect() {
 				uni.navigateTo({
-					url: './bleConnect'
+					url: '../my/bleConnect'
 				})
 			},
 			doNothing(){
@@ -263,10 +261,6 @@
 					}
 				});
 			},
-			// checkbox选择发生变化
-			checkboxGroupChange(e) {
-				this.model.likeFruit = e;
-			},
 			// radio选择发生变化
 			radioGroupChange(e) {
 				this.model.payType = e;
@@ -285,6 +279,7 @@
 						this.$queue.showToast("提交成功！")
 						let pages = getCurrentPages(); // 当前页面
 						let beforePage = pages[pages.length - 2]; // 前一个页面
+						uni.setStorageSync('reloadOrders',true);
 						setTimeout(function() {
 							uni.navigateBack({
 								success: function() {

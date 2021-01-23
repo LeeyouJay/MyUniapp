@@ -157,7 +157,6 @@
 						for (let temp of tempFilePaths) {
 							// 图片上传服务器
 							var fileUrl = this.$Request.config("APIHOST");
-							fileUrl = fileUrl.substr(0, fileUrl.lastIndexOf(':')) + ':8600/Arslinth/uploadimg/'
 							var data = this.formData;
 							var pdName = data.pdName;
 							data.pdName = data.pdName+this.guid();
@@ -170,7 +169,7 @@
 								success: res => {
 									// 上传完成后处理
 									this.editorCtx.insertImage({
-										src: fileUrl + data.pdName + '.jpg', // 此处需要将图片地址切换成服务器返回的真实图片地址
+										src: fileUrl + '/uploadimg/' + data.pdName + '.jpg', // 此处需要将图片地址切换成服务器返回的真实图片地址
 										alt: pdName,
 										success: function(e) {
 											console.log(e);

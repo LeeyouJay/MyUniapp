@@ -1,0 +1,561 @@
+<template>
+	<view class="wrap">
+		<view class="u-search-box">
+			<u-calendar v-model="calendar" mode="date" @change="chooseDate"></u-calendar>
+			<view>
+				<view style="width: 30%;float: left;"><u-input v-model="selectDate" type="text" input-align="center"  :disabled="true" placeholder="请选择日期" :custom-style="inputStyle" @click="calendar = true"/></view>
+				<view style="width: 65%;float: right;"><u-search v-model="searchName" :action-style="searchBtnStyle" shape="round" input-align="center" placeholder="请输入客户名称" @custom="search" ></u-search></view>
+			</view>
+		</view>
+		<view class="u-tabs-box">
+			<u-tabs-swiper activeColor="#2979ff" ref="tabs" :list="list" :current="current" @change="change" :is-scroll="false" bar-width="120"></u-tabs-swiper>
+		</view>
+		<swiper class="swiper-box" :current="swiperCurrent" @transition="transition" @animationfinish="animationfinish">
+			<!-- 第一栏 -->
+			<swiper-item class="swiper-item">
+				<scroll-view scroll-y style="height: 100%;width: 100%;" @scrolltolower="reachBottom">
+					<view class="page-box">
+						<view v-if="orderList.length == 0">
+							<view class="centre">
+								<image src="https://cdn.uviewui.com/uview/template/taobao-order.png" mode=""></image>
+								<view class="explain">
+									暂无数据
+									<view class="tips">可以去看看有哪些品种</view>
+								</view>
+								<!-- <view class="btn">随便逛逛</view> -->
+							</view>
+						</view>
+						
+						<view class="order" v-for="(res, front) in orderList" :key="res.id">
+							<view class="top">
+								<view class="left">
+									<u-icon name="account" :size="40" color="rgb(94,94,94)"></u-icon>
+									<view class="store">{{ res.consumer }}</view>
+								</view>
+								<view class="right">{{ res.createTime }}</view>
+							</view>
+							
+							<view class="item" v-for="(item, index) in res.orderDetails" :key="item.id" @click="productInfo(res.orderDetails[index])">
+								<view class="left">
+									<image style="width: 90px; height: 90px;" :src="ip+item.imgUrl" :lazy-load="true" mode="aspectFill"></image>
+								</view>
+								<view class="midRight">
+									<view class="content">
+										<view class="title u-line-2">{{ item.pdName }}</view>
+										<view class="unit">规格：{{item.unit}}</view>
+										<view class="type" :class="[item.type == '水稻' ? 'rice' : item.type == '玉米' ? 'corn' :  item.type == '农药' ? 'pesticide' : item.type == '肥料' ? 'fertilizer':'peanut']" >{{ item.type }}</view>
+									</view>
+									<view class="right">
+										<view class="price">
+											￥{{ priceInt(item.price) }}
+											<text class="decimal">.{{ priceDecimal(item.price) }}</text>
+										</view>
+										<view class="number">x{{ item.value }}</view>
+									</view>
+								</view>
+							</view>
+							<view class="total">
+								共
+								<text class="total-price">{{ totalNum(res.orderDetails) }}</text>
+								种类型 合计:
+								<text class="total-price">
+									￥{{ priceInt(res.totalPrice) }}.
+									<text class="decimal">{{ priceDecimal(res.totalPrice) }}</text>
+								</text>
+							</view>
+							
+							<view class="bottom">
+								<!-- <view class="more"><u-icon name="more-dot-fill" color="rgb(203,203,203)"></u-icon></view>
+								<view class="logistics btn">查看物流</view>
+								<view class="exchange btn">卖了换钱</view>
+								<view class="evaluate btn">评价</view> -->
+							</view>
+							
+						</view>
+						<u-loadmore :status="loadStatus[0]" bgColor="#f2f2f2"></u-loadmore>
+					</view>
+				</scroll-view>
+			</swiper-item>
+				<!-- 第二栏 -->
+			<swiper-item class="swiper-item">
+				<scroll-view scroll-y style="height: 100%;width: 100%;" @scrolltolower="reachBottom">
+					<view class="page-box">
+						<view v-if="wholesale.length == 0">
+							<view class="centre">
+								<image src="https://cdn.uviewui.com/uview/template/taobao-order.png" mode=""></image>
+								<view class="explain">
+									暂无数据
+									<view class="tips">可以去看看有哪些品种</view>
+								</view>
+								<!-- <view class="btn">随便逛逛</view> -->
+							</view>
+						</view>
+						
+						<view class="order" v-for="(res, front) in wholesale" :key="res.id">
+							<view class="top">
+								<view class="left">
+									<u-icon name="account" :size="40" color="rgb(94,94,94)"></u-icon>
+									<view class="store">{{ res.consumer }}</view>
+								</view>
+								<view class="right">{{ res.createTime }}</view>
+							</view>
+							
+							<view class="item" v-for="(item, index) in res.saleDetails" :key="item.id" @click="productInfo(res.saleDetails[index])">
+								<view class="left">
+									<image style="width: 90px; height: 90px;" :src="ip+item.imgUrl" :lazy-load="true" mode="aspectFill"></image>
+								</view>
+								<view class="midRight">
+									<view class="content">
+										<view class="title u-line-2">{{ item.pdName }}</view>
+										<view class="unit">规格：{{item.unit}}</view>
+										<view class="type" :class="[item.type == '水稻' ? 'rice' : item.type == '玉米' ? 'corn' :  item.type == '农药' ? 'pesticide' : item.type == '肥料' ? 'fertilizer':'peanut']" >{{ item.type }}</view>
+									</view>
+									<view class="right">
+										<view class="price">
+											￥{{ priceInt(item.price) }}
+											<text class="decimal">.{{ priceDecimal(item.price) }}</text>
+										</view>
+										<view class="number">x{{ item.num }}</view>
+									</view>
+								</view>
+							</view>
+							<view class="total">
+								共
+								<text class="total-price">{{ totalNum(res.saleDetails) }}</text>
+								种类型 合计:
+								<text class="total-price">
+									￥{{ priceInt(res.totalPrice) }}.
+									<text class="decimal">{{ priceDecimal(res.totalPrice) }}</text>
+								</text>
+							</view>
+							
+							<view class="bottom">
+								<!-- <view class="more"><u-icon name="more-dot-fill" color="rgb(203,203,203)"></u-icon></view>
+								<view class="logistics btn">查看物流</view>
+								<view class="exchange btn">卖了换钱</view>
+								<view class="evaluate btn">评价</view> -->
+							</view>
+							
+						</view>
+						<u-loadmore :status="loadStatus[1]" bgColor="#f2f2f2"></u-loadmore>
+					</view>
+				</scroll-view>
+			</swiper-item>											
+		</swiper>
+	</view>
+</template>
+
+<script>
+	var that;
+export default {
+	data() {
+		return {
+			ip: this.$Request.config("APIHOST"),
+			searchName:"",
+			selectDate:"",
+			orderList: [],
+			wholesale: [],
+			calendar:false,
+			orderLimit:0,
+			saleLimit:0,
+			toOnShow:false,
+			list: [
+				{
+					name: '发票记录'
+				},
+				{
+					name: '批发记录'
+				}
+			],
+			current: 0,
+			swiperCurrent: 0,
+			tabsHeight: 0,
+			dx: 0,
+			loadStatus: ['loadmore','loadmore','loadmore','loadmore'],
+			inputStyle:{
+				'backgroundColor': '#f2f2f2',
+				'borderRadius': '100rpx'
+			},
+			searchBtnStyle:{
+				//'margin': '80rpx auto',
+				'width': '25%',
+				'borderRadius': '32rpx',
+				'lineHeight': '64rpx',
+				'color': '#ffffff',
+				'fontSize': '26rpx',
+				'backgroundColor': '#2979ff'
+			},
+		};
+	},
+	onPullDownRefresh() {
+		this.searchName="";
+		this.selectDate="";
+		setTimeout(function() {
+			that.orderList = [];
+			that.orderLimit = 0;
+			that.getOrderList();
+			
+			that.saleLimit = 0;
+			that.wholesale = [];
+			that.getSaleList();
+			uni.stopPullDownRefresh(); //停止下拉刷新动画
+		}, 1000);
+	},
+	onLoad() {
+		that = this;
+		console.log("onLoad")
+		//this.toOnShow = false;
+		if(this.orderList.length<5)
+			this.loadStatus.splice(0,1,"nomore")
+			
+			
+		if(this.wholesale.length<5)
+			this.loadStatus.splice(1,1,"nomore")
+			
+		this.getOrderList();
+		this.getSaleList()
+	},
+	onShow() {
+		console.log("onShow")
+		if(this.toOnShow){
+			if (uni.getStorageSync('reloadOrders')) {
+				that.orderList = [];
+				that.orderLimit = 0;
+				that.getOrderList();
+				uni.removeStorageSync('reloadOrders');
+			}
+			if (uni.getStorageSync('reloadSales')) {
+				that.saleLimit = 0;
+				that.wholesale = [];
+				that.getSaleList();
+				uni.removeStorageSync('reloadSales');
+			}
+		}
+		this.toOnShow = true;
+	},
+	computed: {
+		// 价格小数
+		priceDecimal() {
+			return val => {
+				if (val !== parseInt(val)) return val.slice(-2);
+				else return '00';
+			};
+		},
+		// 价格整数
+		priceInt() {
+			return val => {
+				if (val !== parseInt(val)) return val.split('.')[0];
+				else return val;
+			};
+		}
+	},
+	methods: {
+		search(){
+			console.log(this.swiperCurrent);
+			switch(this.swiperCurrent){
+				case 0:
+					this.orderLimit = 0;
+					this.orderList = [];
+					setTimeout(() => {that.getOrderList();}, 200);
+				break;
+				case 1:
+					this.saleLimit = 0;
+					this.wholesale = [];
+					setTimeout(() => {that.getSaleList();}, 200);
+				break;
+			}
+			
+		},
+		chooseDate(e){
+			that.selectDate = e.result;
+		},
+		//滑到底部加载更多
+		reachBottom() {
+			switch(this.swiperCurrent){
+				case 0:
+					if(this.orderLimit*5>that.orderList.length){
+						this.loadStatus.splice(this.current,1,"nomore")
+						return
+					}
+					setTimeout(() => {
+						this.loadStatus.splice(this.current,1,"loading")
+						setTimeout(() => {this.getOrderList();}, 1200);
+					}, 500);
+				break;
+				case 1:
+				if(this.saleLimit*5>that.wholesale.length){
+					this.loadStatus.splice(this.current,1,"nomore")
+					return
+				}
+				setTimeout(() => {
+					this.loadStatus.splice(this.current,1,"loading")
+					setTimeout(() => {this.getSaleList();}, 1200);
+				}, 500);
+				break;
+			}
+		},
+		// 发票记录
+		getOrderList() {
+			this.$Request.getT('/getOrders/'+that.orderLimit+'?searchName='+that.searchName+'&selectDate='+that.selectDate).then(res => {
+				if (res.status == 200) {
+					let dataList = res.data;
+					if(dataList == null || dataList.length == 0){
+						this.loadStatus.splice(this.current,1,"nomore")
+						return;
+					}
+					dataList.map(val=>that.orderList.push(val));
+					that.loadStatus.splice(that.current,1,"loadmore")
+					that.orderLimit++;
+				}else {
+					this.$queue.showToast(res.msg);
+				}
+				
+			})
+		},
+		// 批发记录
+		getSaleList() {
+			this.$Request.getT('/getSales/'+that.saleLimit+'?searchName='+that.searchName+'&selectDate='+that.selectDate).then(res => {
+				if (res.status == 200) {
+					let dataList = res.data;
+					if(dataList == null || dataList.length == 0){
+						this.loadStatus.splice(this.current,1,"nomore")
+						return;
+					}
+					dataList.map(val=>that.wholesale.push(val));
+					that.loadStatus.splice(that.current,1,"loadmore")
+					that.saleLimit++;
+				}else {
+					this.$queue.showToast(res.msg);
+				}
+				
+			})
+		},
+		productInfo(item) {
+			//console.log(item)
+			uni.navigateTo({
+				url: '../front/productInfo?id=' + item.productId
+			})
+		},
+		
+		totalNum(item) {
+			return item.length;
+		},
+		// tab栏切换
+		change(index) {
+			this.swiperCurrent = index;
+		},
+		transition({ detail: { dx } }) {
+			this.$refs.tabs.setDx(dx);
+		},
+		animationfinish({ detail: { current } }) {
+			this.$refs.tabs.setFinishCurrent(current);
+			this.swiperCurrent = current;
+			this.current = current;
+		}
+	}
+};
+</script>
+
+<style>
+/* #ifndef H5 */
+page {
+	height: 100%;
+	background-color: #f2f2f2;
+}
+/* #endif */
+</style>
+
+<style lang="scss" scoped>
+.midRight{
+	position: relative;
+	width: 75%;
+}
+.order {
+	width: 710rpx;
+	background-color: #ffffff;
+	margin: 20rpx auto;
+	border-radius: 20rpx;
+	box-sizing: border-box;
+	padding: 20rpx;
+	font-size: 28rpx;
+	.top {
+		display: flex;
+		justify-content: space-between;
+		.left {
+			display: flex;
+			align-items: center;
+			.store {
+				margin: 0 10rpx;
+				font-size: 38rpx;
+				font-weight: bold;
+			}
+		}
+		.right {
+			line-height: 2;
+			color: #2979ff;
+		}
+	}
+	.item {
+		display: flex;
+		margin: 20rpx 0 0;
+		padding: 0 20rpx;
+		.left {
+			width: 30%;
+			padding-right: 20rpx;
+			image {
+				width: 200rpx;
+				height: 200rpx;
+				border-radius: 10rpx;
+			}
+		}
+		.content {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			right: 0;
+			left: 0;
+			height: 90%;
+			margin: auto 0;
+			
+			.title {
+				margin-bottom: 3%;
+				font-size: 32rpx;
+			}
+			.unit{
+				font-size: 26rpx;
+				color: $u-tips-color;
+			}
+			.type {
+				line-height: 1;
+				padding: 2rpx 12rpx;
+				align-items: center;
+				border-radius: 50rpx;
+				font-size: 26rpx;
+				width: 80rpx;
+				margin-top: 3%;
+			}
+			.rice {
+				border: 1px solid #2979ff;
+				color: #2979ff;
+			}
+			.corn {
+				border: 1px solid #ff9900;
+				color: #ff9900;
+			}
+			.pesticide{
+				border: 1px solid #fa3534;
+				color: #fa3534;
+			}
+			.peanut{
+				border: 1px solid #19be6b;
+				color: #19be6b;
+			}
+			.fertilizer{
+				border:1px solid #aa00ff;
+				color: #aa00ff;
+			}
+			.delivery-time {
+				color: #e5d001;
+				font-size: 26rpx;
+			}
+		}
+		.right {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			right: 0;
+			left: 0;
+			height: 90%;
+			margin: auto 0;			
+			margin-left: 10rpx;
+			text-align: right;
+			.price{
+				margin-bottom: 10rpx;
+				font-size: 32rpx;
+			}
+			.decimal {
+				font-size: 30rpx;
+				margin-top: 4rpx;
+			}
+			.number {
+				color: $u-tips-color;
+				margin: 10rpx 0;
+				font-size: 30rpx;
+			}
+		}
+	}
+	.total {
+		margin-top: 20rpx;
+		text-align: right;
+		font-size: 30rpx;
+		padding: 0 20rpx;
+		color: $u-tips-color;
+		.total-price {
+			color: #f01414;
+			font-size: 32rpx;
+		}
+	}
+	.bottom {
+		display: flex;
+		margin-top: 40rpx;
+		padding: 0 10rpx;
+		justify-content: space-between;
+		align-items: center;
+		.btn {
+			line-height: 52rpx;
+			width: 160rpx;
+			border-radius: 26rpx;
+			border: 2rpx solid $u-border-color;
+			font-size: 26rpx;
+			text-align: center;
+			color: $u-type-info-dark;
+		}
+		.evaluate {
+			color: $u-type-warning-dark;
+			border-color: $u-type-warning-dark;
+		}
+	}
+}
+.centre {
+	text-align: center;
+	margin: 200rpx auto;
+	font-size: 32rpx;
+	image {
+		width: 164rpx;
+		height: 164rpx;
+		border-radius: 50%;
+		margin-bottom: 20rpx;
+	}
+	.tips {
+		font-size: 24rpx;
+		color: #999999;
+		margin-top: 20rpx;
+	}
+	.btn {
+		margin: 80rpx auto;
+		width: 200rpx;
+		border-radius: 32rpx;
+		line-height: 64rpx;
+		color: #aa00ff;
+		font-size: 26rpx;
+		background: linear-gradient(270deg, rgba(249, 116, 90, 1) 0%, rgba(255, 158, 1, 1) 100%);
+	}
+}
+.wrap {
+	display: flex;
+	flex-direction: column;
+	height: calc(100vh - var(--window-top));
+	width: 100%;
+}
+.swiper-box {
+	flex: 1;
+}
+.swiper-item {
+	height: 100%;
+}
+.u-search-box {
+	background: #ffffff;
+	padding: 18rpx 30rpx;
+}
+</style>
+

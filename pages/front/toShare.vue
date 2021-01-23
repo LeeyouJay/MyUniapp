@@ -16,7 +16,7 @@
 						{{item.pdName}}
 					</view>
 					<view class="demo-tag">
-						<view class="demo-tag-text" :class="[item.type == '水稻' ? 'rice' : item.type == '玉米' ? 'corn' :  item.type == '农药' ? 'pesticide' : 'peanut']">
+						<view class="demo-tag-text" :class="[item.type == '水稻' ? 'rice' : item.type == '玉米' ? 'corn' :  item.type == '农药' ? 'pesticide' : item.type == '肥料' ? 'fertilizer': 'peanut']">
 							{{item.type}}
 						</view>
 					</view>
@@ -82,7 +82,7 @@
 		onShareAppMessage() {
 			return {
 				title: '产品列表',
-				path: '/pages/my/toShare'
+				path: '/pages/front/toShare'
 			}
 		},
 		methods: {
@@ -190,7 +190,10 @@
 		border: 1px solid #19be6b;
 		color: #19be6b;
 	}
-
+	.fertilizer{
+		border:1px solid #aa00ff;
+		color: #aa00ff;
+	}	
 	.demo-price {
 		font-size: 30rpx;
 		color: $u-type-error;

@@ -30,7 +30,7 @@
 			</u-form-item>
 
 			<u-form-item label="上传图片" prop="photo" label-width="150">
-				<u-upload ref="uUpload" width="160" :max-count="1" :max-size="3 * 1024 * 1024" 
+				<u-upload ref="uUpload" width="160" :max-count="1" :max-size="5 * 1024 * 1024" 
 				:action="action" :auto-upload="autoUpload"  :header="header" :form-data="model" :before-upload="beforeUpload"
 				@on-success="uploadSuccess" @on-error="uploadFail" @on-list-change="choose"></u-upload>
 			</u-form-item>

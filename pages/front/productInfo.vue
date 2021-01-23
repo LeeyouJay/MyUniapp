@@ -1,7 +1,7 @@
 <template>
 	<view class="u-wrap" style="margin: 40rpx;">
 		<view style="margin-bottom: 20rpx;">
-			<u-image mode="aspectFit" width="100%" height="500rpx" :src="avatar" :border-radius="20"></u-image>
+			<u-image mode="aspectFit" width="100%" height="500rpx" :src="avatar" :border-radius="20" @click="preview"></u-image>
 		</view>
 		<u-divider>品种信息</u-divider>
 		
@@ -27,7 +27,7 @@
 	</u-swipe-action>
 		<u-divider>性状特征</u-divider>
 		<view class="content">
-			<u-parse :html="contents" :tag-style="style" :show-with-animation="true" ></u-parse>
+			<u-parse :html="contents" :tag-style="style" ></u-parse>
 			<view style="text-align: right;margin: 20rpx 0;" v-if="token">
 				<u-button :ripple="true" type="primary" @click="toEdit(product)" size="medium">重新编辑</u-button>
 			</view>
@@ -53,8 +53,8 @@
 				avatar: '',
 				show:false,
 				style: {
-					p: 'font-size:32rpx',
-					img: 'width: 100%'
+					p: 'font-size:32rpx'
+					
 				},
 				token:'',
 				options: [
@@ -83,10 +83,28 @@
 			}
 		},
 		methods: {
+			//预览图片
+			preview(){
+				let images = [that.avatar]
+				uni.previewImage({
+					urls:images,
+					success: (res) => {
+						this.$emit('on-preview', that.avatar,images);
+					},
+					fail: (e) => {
+						console.log(e)
+						uni.showToast({
+							title: '预览图片失败',
+							icon: 'none'
+						});
+					}
+				});
+			},
+			
 			click() {
 				//console.log(that.product)
 				uni.navigateTo({
-					url: './editBase?id=' + that.product.id+'&pdName='+that.product.pdName+'&min='+that.product.periodMin+'&max='+that.product.periodMax+
+					url: '../front/editBase?id=' + that.product.id+'&pdName='+that.product.pdName+'&min='+that.product.periodMin+'&max='+that.product.periodMax+
 					'&height='+that.product.height+'&yield='+that.product.yield
 				})
 			},
@@ -104,7 +122,7 @@
 			},
 			toEdit(product){
 				uni.navigateTo({
-					url: './editInfo?id=' + product.id
+					url: '../front/editInfo?id=' + product.id
 				})
 			}
 		}

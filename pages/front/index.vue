@@ -20,14 +20,17 @@
 						<u-swipe-action :show="product.hide" v-for="(product, index) in item.products" :index="i" :secondIndex="index" :disabled = "product.move"
 						 :key="index" :options="product.options" @click="swipeClick" @open="swipeOpen" v-if="product.show">
 							<view :class="[product.value > 0 ? 'food border' : 'food']">
-									<u-image width="75px" height="75px" :src="ip+product.img" mode="scaleToFill" @click="productInfo(product.id)"></u-image>
+									<u-image width="75px" height="75px" :src="ip+product.img" mode="aspectFill" @click="productInfo(product.id)">
+										<u-loading slot="loading"></u-loading>
+										<view slot="error" style="font-size: 24rpx;">加载失败</view>
+									</u-image>
 									<view class="food-info">
 										<view class="food-title">{{product.pdName}}</view>
 										<view class="food-num">库存:{{product.num}}({{product.unit}})</view>
 										<view class="food-btm">
 											<text class="food-price">￥{{product.price}}</text>
 											<!-- 步进器 -->
-											<u-number-box v-model="product.value" @change="valChange(product)" @minus="minus(product)" @plus="plus(product)"
+											<u-number-box v-model="product.value" @change="valChange(product,i,index)" @minus="minus(product)" @plus="plus(product)"
 											 :step="step" :disabled-input="disabledInput"></u-number-box>
 										</view>
 									</view>
@@ -42,7 +45,7 @@
 		<u-popup v-model="checkShow" mode="bottom">
 			<view style="margin: 30rpx 30rpx;">
 				<view class="pop-btn">
-					<u-button :ripple="true" :plain="true" size="mini" @click="clearData()">清空数据</u-button>
+					<u-button :ripple="true" :plain="true" size="mini" @click="clearFromBack()">清空数据</u-button>
 				</view>
 				<u-table>
 					<u-tr>
@@ -75,7 +78,7 @@
 					</view>
 				</view>
 				<view class="pop-content">
-					<u-checkbox-group @change="checkboxGroupChange">
+					<u-checkbox-group @change="checkboxGroupChange" v-if="hackReset">
 					<u-row gutter="0" v-for="(res , front) in goods" :key="front">
 						<u-col span="12">
 							<view class="demo-layout-type">
@@ -101,9 +104,9 @@
 					<u-icon name="shopping-cart" :size="60" :color="$u.color['contentColor']" @click="toShow"></u-icon>
 				</view>
 				<view class="food-btm">
-					<text class="food-price" style="font-size: 22px;">￥</text>
-					<u-count-to ref="uCountTo" :start-val="0" :end-val="totalPrice" :decimals="2" :font-size="44" color="#f01414"
-					 :duration="700"></u-count-to>
+					<text class="food-price" style="font-size: 22px;">￥{{totalPrice}}</text>
+					<!-- <u-count-to ref="uCountTo" :start-val="0" :end-val="totalPrice" :decimals="2" :font-size="44" color="#f01414"
+					 :duration="700"></u-count-to> -->
 				</view>
 			</view>
 			<view class="right" style="width: 65%;">
@@ -121,9 +124,12 @@
 			return {
 				ip: this.$Request.config("APIHOST"),
 				step: 1,
+				isChange:false,
 				disabledInput: false,
 				checkShow: false,
 				showList:false,
+				hackReset:false,
+				boxFirst:'',
 				totalType: 0,
 				totalPrice: 0,
 				scrollTop: 0, //tab标题的滚动条位置
@@ -140,8 +146,6 @@
 				goods: [],
 				selectGoods: [],
 				checkboxGoods:[],
-				productTemp: '',
-				cache: 0,
 				options1: [{
 						text: '隐藏',
 						style: {
@@ -192,7 +196,7 @@
 		onShareAppMessage() {
 			return {
 				title: '产品列表',
-				//imageUrl:'https://chenyi.ink:8600/Arslinth/static/wallhaven.jpg',
+				imageUrl:'https://chenyi.ink:8600/Arslinth/static/wallhaven-min.jpg',
 				path: '/pages/front/toShare'
 			}
 		},
@@ -211,13 +215,12 @@
 		},
 		onReady() {
 			this.getMenuItemTop();
+			setTimeout(()=>{ this.isChange=true }, 200);
 		},
 		onPullDownRefresh() {
 			setTimeout(function() {
 				that.getList();
-				that.productTemp = '';
-				that.cache = 0;
-				uni.stopPullDownRefresh(); //停止下拉刷新动画
+				uni.stopPullDownRefresh();
 			}, 1000);
 		},
 		methods: {
@@ -254,23 +257,12 @@
 				}
 			},
 			hideProd(id) {
-				uni.showModal({
-					title: '隐藏',
-					content: '确定隐藏所选品种？隐藏之后可在显示管理中重新打开',
-					showCancel: true,
-					success: function(res) {
-						if (res.confirm) {
-							that.$Request.getT('/changeStatus/' + id + '/' + false).then(res => {
-								if (res.status == 200) {
-									that.$queue.showToast("隐藏成功");
-									that.getList();
-									that.productTemp = '';
-									that.cache = 0;
-								} else {
-									that.$queue.showToast(res.msg);
-								}
-							})
-						}
+				that.$Request.getT('/changeStatus/' + id + '/' + false).then(res => {
+					if (res.status == 200) {
+						that.$queue.showToast("隐藏成功");
+						that.getList();
+					} else {
+						that.$queue.showToast(res.msg);
 					}
 				})
 			},
@@ -285,8 +277,6 @@
 								if (res.status == 200) {
 									that.$queue.showToast('删除成功！')
 									that.getList();
-									that.productTemp = '';
-									that.cache = 0;
 								} else
 									that.$queue.showToast(res.msg)
 							})
@@ -304,17 +294,17 @@
 					url: '../front/productInfo?id=' + id
 				})
 			},
-			clearData() {
-				this.totalType = 0;
-				this.totalPrice = 0;
-				this.selectGoods = [];
-				this.getList();
+			reloadChooseGroup(again) {
+				if(again)
+					this.goods.map(item=>item.products.map(val=>val.isSelected = false));
+				this.checkboxGoods = [];
+				this.showList = false;
+				this.hackReset = false;
+				this.$nextTick(() => {
+					this.hackReset = true;
+				})
 			},
 			clearFromBack() {
-				this.goods = [];
-				this.totalType = 0;
-				this.totalPrice = 0;
-				this.selectGoods = [];
 				this.showList = false;
 				this.getList();
 			},
@@ -332,6 +322,18 @@
 				})
 			},
 			toCheck() {
+				this.selectGoods = []
+				this.goods.map(good=>good.products.map(val=>{
+					if(val.value>0){
+						this.selectGoods.push({
+							pdName: val.pdName,
+							value: val.value,
+							price: val.price,
+							cost:val.cost,
+							type:val.type,
+						})
+					}
+				}));
 				if (that.selectGoods.length == 0) {
 					this.$queue.showToast("请先选择商品！")
 					return
@@ -342,38 +344,50 @@
 				})
 			},
 			toShow() {
+				this.selectGoods = []
+				this.goods.map(good=>good.products.map(val=>{
+					if(val.value>0){
+						this.selectGoods.push({
+							pdName: val.pdName,
+							value: val.value,
+							price: val.price,
+							cost:val.cost,
+							type:val.type,
+						})
+					}
+				}));
 				this.checkShow = true;
 			},
-			valChange(product) {
-				if(product.value > 0)
-					product.move = true;
-				else
-					product.move = false;
-					
-				if (that.productTemp != product.id) {
-					that.productTemp = product.id;
-					that.cache = product.num;
-				}
-				product.num = (that.cache - product.value).toFixed(1)
-				if (JSON.stringify(that.selectGoods).indexOf(JSON.stringify(product)) === -1 && product.value != 0) {
-					that.selectGoods.push(product)
-				} else {
-					for (var i = 0; i < that.selectGoods.length; i++) {
-						var id = that.selectGoods[i].id;
-						if (id == product.id) {
-							if (product.value == 0 || product.value == "")
-								that.selectGoods.splice(i, 1)
-							else
-								that.selectGoods[i].value = product.value;
-						}
+			valChange(product,index,secondIndex) {
+				if(this.isChange){
+					// console.log("index:"+index);
+					// console.log("secondIndex:"+secondIndex);
+					//使用传统for循环达到最快效率 map() 建议在赋值时使用
+					var temp =[];
+					that.goods.map(item=>item.products.map(val=>{
+						if(val.value>0)
+							temp.push(that.accMul(val.price, val.value))
+					}))
+					// for (let i = 0; i < that.goods.length; i++) {
+					// 	for (let j = 0; j < that.goods[i].products.length; j++) {
+					// 		let val = that.goods[i].products[j]
+					// 		temp.push(that.accMul(val.price, val.value))
+					// 	}
+					// }
+					var tempSum = 0
+					var typeCount = 0;
+					for (let i = 0; i < temp.length; i++) {
+						tempSum = that.accAdd(tempSum,temp[i]).toFixed(2);
+						if(temp[i]>0)
+							typeCount++
 					}
-				}
-				that.totalType = that.selectGoods.length;
-				that.totalPrice = 0;
-				for (var i = 0; i < that.selectGoods.length; i++) {
-					var price = that.selectGoods[i].price
-					var count = that.selectGoods[i].value
-					that.totalPrice = that.accAdd(that.totalPrice, that.accMul(price, count)).toFixed(2);
+					that.totalType = typeCount;
+					that.totalPrice = tempSum
+					
+					if(product.value > 0)
+						product.move = true;
+					else
+						product.move = false;
 				}
 			},
 			plus(product) {
@@ -535,7 +549,6 @@
 				this.totalType = 0;
 				this.totalPrice = 0;
 				this.selectGoods = [];
-				this.checkboxGoods = [];
 				this.$Request.getT('/getList').then(res => {
 					if (res.status == 200) {
 						var data = res.data;
@@ -548,20 +561,8 @@
 							else
 								val.options = that.options2
 						}))
-						
-						// for (var i = 0; i < goods.length; i++) {
-						// 	for (var j = 0; j < goods[i].products.length; j++) {
-						// 		var product = goods[i].products[j]
-						// 		product.hide = false
-						// 		product.move = false
-						// 		product.isSelected = false
-						// 		if (product.fromApp == 1)
-						// 			product.options = that.options1
-						// 		else
-						// 			product.options = that.options2
-						// 	}
-						// }
 						that.goods = data;
+						that.reloadChooseGroup(false)
 					} else {
 						this.$queue.showToast(res.msg);
 					}
@@ -640,13 +641,6 @@
 		margin-bottom: 20rpx;
 		text-align: right;
 		margin-right: 1px;
-	}
-
-	.close-btn {
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 
 	.u-wrap {
@@ -749,6 +743,7 @@
 
 	.border {
 		background-color: #ECF5FF;
+		border-radius: 20rpx;
 		border-style: solid;
 		border-color: #2979FF;
 		border-width: 1rpx;

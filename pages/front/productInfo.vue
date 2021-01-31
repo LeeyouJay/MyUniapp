@@ -1,7 +1,10 @@
 <template>
 	<view class="u-wrap" style="margin: 40rpx;">
 		<view style="margin-bottom: 20rpx;">
-			<u-image mode="aspectFit" width="100%" height="500rpx" :src="avatar" :border-radius="20" @click="preview"></u-image>
+			<u-image mode="aspectFit" width="100%" height="500rpx" :src="avatar" :border-radius="20" @click="preview">
+				<u-loading slot="loading"></u-loading>
+				<view slot="error" style="font-size: 24rpx;">加载失败</view>
+			</u-image>
 		</view>
 		<u-divider>品种信息</u-divider>
 		

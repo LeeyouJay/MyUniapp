@@ -217,7 +217,7 @@
 		align-items: center;
 		overflow: hidden;
 		user-select: none;
-		line-height: 1.8;
+		//line-height: 1.8;
 		
 		&__icon-wrap {
 			color: $u-content-color;
@@ -262,8 +262,8 @@
 	
 		&__label {
 			word-wrap: break-word;
-			margin-left: 10rpx;
-			margin-right: 24rpx;
+			//margin-left: 10rpx;
+			//margin-right: 24rpx;
 			color: $u-content-color;
 			font-size: 30rpx;
 			

@@ -263,7 +263,7 @@
 						setTimeout(function() {
 							uni.navigateBack({
 								success: function() {
-									beforePage.$vm.clearData(); 
+									beforePage.$vm.clearFromBack(); 
 								}
 							})
 						}, 1500)
@@ -300,7 +300,7 @@
 						setTimeout(function() {
 							uni.navigateBack({
 								success: function() {
-									beforePage.$vm.clearData();
+									beforePage.$vm.clearFromBack();
 								}
 							})
 						}, 1500)

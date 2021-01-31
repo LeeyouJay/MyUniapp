@@ -93,12 +93,12 @@
 			//测试跳转按钮
 			toTest(){
 				uni.navigateTo({
-					url:'./toShare'
+					url:'../front/toShare'
 				})
 			},
 			setting(){
 				uni.navigateTo({
-					url: './bleConnect'
+					url: '../my/bleConnect'
 				})
 			},
 			toShow() {

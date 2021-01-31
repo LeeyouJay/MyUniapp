@@ -72,6 +72,10 @@
 		,{
 		    "path" : "pages/orders/wholeSale",
 		    "style" : {}
+		},
+		{
+			"path":"pages/my/new_file",
+			"style":{}
 		}
 		
     ],

@@ -18,31 +18,39 @@
 			
 		</u-form>
 		<u-row gutter="16">
-			<u-col span="3">
+			<u-col span="4">
 				<view class="demo-layout title">品种名称</view>
 			</u-col>
 			<u-col span="3">
 				<view class="demo-layout title">数量(包)</view>
 			</u-col>
-			<u-col span="3">
-				<view class="demo-layout title">批发单价</view>
+			<u-col span="2">
+				<view class="demo-layout title">单价</view>
 			</u-col>
 			<u-col span="3">
 				<view class="demo-layout title">小计</view>
 			</u-col>
 		</u-row>
 		<u-row gutter="16" v-for="(item, index) in products" :key="index">
-			<u-col span="3">
+			<u-col span="4">
 				<view class="demo-layout context">{{item.pdName}}</view>
 			</u-col>
 			<u-col span="3">
 				<view class="demo-layout " style="background: #FFFFFF;">
-					<u-input v-model="item.num" type="digit" input-align="center"  placeholder="请输入数量" :clearable="false" :custom-style="inputStyle"/>
+					<input class="input" v-model="item.num" type="digit"
+					:auto-blur="true" 
+					placeholder="请输入数量" placeholder-style="color: #c0c4cc;" 
+					@input="checkInput(item,false,$event)" />
+					<!-- <u-input v-model="item.num" type="digit" input-align="center"  placeholder="请输入数量" :clearable="false" :custom-style="inputStyle"/> -->
 				</view>
 			</u-col>
-			<u-col span="3">
+			<u-col span="2">
 				<view class="demo-layout " style="background: #FFFFFF;">
-					<input class="input" v-model="item.price" type="digit" :placeholder="'默认'+oldPrice[index]+'￥'" placeholder-style="color: #c0c4cc;" :auto-blur="true" @blur="setPrice(item,index)" />
+					<input class="input" v-model="item.price" type="digit" 
+					:placeholder="oldPrice[index]+'￥'" placeholder-style="color: #c0c4cc;" 
+					:auto-blur="true" 
+					@input="checkInput(item,true,$event)"
+					@blur="setPrice(item,index)" />
 					<!-- <u-input v-model="item.price" type="digit" input-align="center"  :placeholder="'默认'+oldPrice[index]+'￥'" :clearable="false" :custom-style="inputStyle"/> -->
 				</view>
 			</u-col>
@@ -67,14 +75,17 @@
 				<u-button :ripple="true" type="primary" :loading="isReceiptSend" :disabled="isReceiptSend" @click="toPrint" size="medium">打印</u-button>
 			</view>
 		</view>
-		<u-modal v-model="openModal" content="请重新连接打印机!" confirm-text="去连接" :show-cancel-button="true" @confirm="toConnect" @cancel="doNothing"></u-modal>
-		<u-modal v-model="submitModal" content="已打印成功!" confirm-text="提交" :show-cancel-button="true" @confirm="submit" @cancel="doNothing"></u-modal>
+		<u-modal v-model="openModal" :content="contentMsg" confirm-text="去连接" :show-cancel-button="true" @confirm="toConnect" @cancel="doNothing"></u-modal>
+		<u-modal v-model="submitModal" content="数据发送成功!" confirm-text="提交" :show-cancel-button="true" @confirm="submit" @cancel="doNothing"></u-modal>
 		
 	</view>
 </template>
 
 <script>
-	var that
+	var that;
+	var tsc = require("../../util/ble/tsc.js");
+	var esc = require("../../util/ble/esc.js");
+	var encode = require("../../util/ble/encoding.js");
 	export default {
 		data() {
 			return {
@@ -82,6 +93,19 @@
 				isReceiptSend: false,
 				totalPrice:0,
 				oldPrice:[],
+				Bluetooth:null,
+				printTime:'',
+				newDateFlag:true,
+				looptime: 0,
+				lastData: 0,
+				currentTime: 1,
+				oneTimeData: 20,
+				printNum: [],
+				printerNum: 1,
+				currentPrint:1,
+				contentMsg:'请重新连接打印机!',
+				openModal:false,
+				submitModal:false,
 				inputStyle:{
 					'backgroundColor': '#f2f2f2',
 					//'borderRadius': '100rpx'
@@ -145,20 +169,20 @@
 			that = this
 			var ids = JSON.parse(option.data);
 			this.getByIds(ids)
+			this.getBluetooth();
 		},
-		onPullDownRefresh() {
-			setTimeout(function() {
-
-				uni.stopPullDownRefresh(); //停止下拉刷新动画
-			}, 1000);
+		onShow() {
+			this.getBluetooth();
 		},
 		methods: {
 			submit() {
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
+						if(that.newDateFlag){
+							that.createTime();
+						}
 						if(that.products.some(val=> val.num ==0)){
 							this.$queue.showToast("请输入批发数量！")
-							
 							console.log('验证失败');
 							return
 						}
@@ -167,6 +191,7 @@
 							consumer: that.model.name,
 							payType: that.model.payType,
 							phone: that.model.phone,
+							createTime : that.printTime,
 							saleDetails:that.products
 						}
 						that.addSaleOrder(data);
@@ -185,7 +210,7 @@
 						setTimeout(function() {
 							uni.navigateBack({
 								success: function() {
-									beforePage.$vm.clearFromBack(); 
+									beforePage.$vm.reloadChooseGroup(true); 
 								}
 							})
 						}, 1200)
@@ -204,17 +229,36 @@
 						that.products = res.data
 						that.products.map(val=>{
 							this.oldPrice.push(val.price)
-							val.num=0;
+							val.num="";
 							val.total=0;
 						})
 					}
 				});
 			},
+			checkInput(item,flag,e){
+				var p = e.detail.value
+				var re = /^[0-9]+.?[0-9]*/;
+				　　if (!re.test(Number(p))) {
+					p = p.substr(0,p.indexOf(".", p.indexOf(".") + 1));
+						if(flag)
+							this.$nextTick(() => {
+								item.price = Number(p);
+							})
+						else
+							this.$nextTick(() => {
+								item.num = Number(p);
+							})
+				　　}else{
+						if(flag)
+							item.price = Number(p)
+						else
+							item.num = Number(p)
+					}
+			},
 			setPrice(item,index){
 				if(item.price == 0){
 					item.price = this.oldPrice[index];
 				}
-				return item.price;
 			},
 			
 			totalCalculate(item){
@@ -256,14 +300,246 @@
 				},0);
 				return sum;
 			},
-			
+			createTime(){
+				var date = new Date();
+				var year = date.getFullYear();
+				var mon = date.getMonth() + 1;
+				var da = date.getDate();
+				var h = date.getHours();
+				var m = date.getMinutes();
+				var s = date.getSeconds();
+				var str = year + '-' + mon + '-' + da +  ' ' + h + ':' + m + ':' + s;
+				that.printTime = str
+			},
+			toConnect() {
+				uni.navigateTo({
+					url: '../my/bleConnect'
+				})
+			},
+			getBluetooth(){
+				this.Bluetooth = uni.getStorageSync("Bluetooth");
+			},
 			toPrint(){
-				// this.$refs.uForm.validate(valid=>{
-				// 	if(valid)
-				// 		that.print();
+				this.$refs.uForm.validate(valid=>{
+					if(valid){
+						if(that.products.some(val=> val.num ==0)){
+							this.$queue.showToast("请输入批发数量！")
+							console.log('验证失败');
+							return
+						}
+						that.print();
+						console.log('验证通过!')
+					}else
+						console.log('验证不通过')
+				})
+			},
+			print() {
+				var that = this;
+				var canvasWidth = 180
+				var canvasHeight = 180
+				that.createTime(); 
+				Date.prototype.Format = function (fmt) { // author: meizz
+				    var o = {
+				        "M+": this.getMonth() + 1, // 月份
+				        "d+": this.getDate(), // 日
+				        "h+": this.getHours(), // 小时
+				        "m+": this.getMinutes(), // 分
+				        "s+": this.getSeconds(), // 秒
+				        "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+				        "S": this.getMilliseconds() // 毫秒
+				    };
+				    if (/(y+)/.test(fmt))
+				        fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+				    for (var k in o)
+				        if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+				            return fmt;
+				}
+				
+				console.log(1);
+				var command = esc.jpPrinter.createNew()
+				command.init()
+				// 标题
+				command.bold(1); //加粗
+				command.setFontSize(16); //字体大小
+				command.setSelectJustification(1) //居中
+				command.rowSpace(100);
+				command.setText("周鹿种子销售中心");
+				command.setPrint();
+				command.rowSpace(60);
+			
+				command.bold(0); //取消加粗
+				command.setFontSize(0); //正常字体
+				//时间
+				command.setSelectJustification(0); //居左
+				command.setText("打印时间："+that.printTime);
+				command.setPrint();
+				//编号
+				command.setSelectJustification(0); //居左
+				command.setText("收货人："+that.model.name);
+				command.setPrint();
+				
+				//列表
+				command.rowSpace(80); //间距
+				command.bold(5); //加粗
+				command.setText("品种");
+				command.setAbsolutePrintPosition(100);
+				command.setText("数量(包)");
+				command.setAbsolutePrintPosition(200);
+				command.setText("单价");
+				command.setAbsolutePrintPosition(270);
+				command.setText("小计");
+				command.setAbsolutePrintPosition(380);
+				command.setPrint()
+				var total = 0;
+				for(let i = 0;i<that.products.length;i++){
+					var good = that.products[i];
+					var num = good.num;
+					var numUnit = good.numUnit;
+					total+=Math.ceil(num/numUnit)
 					
-				// })
-			}
+					command.bold(0);
+					command.setText(good.pdName);
+					command.setAbsolutePrintPosition(140);
+					command.setText(good.num);
+					command.setAbsolutePrintPosition(200);
+					command.setText(good.price);
+					command.setAbsolutePrintPosition(270);
+					command.setText(that.totalCalculate(good)+"元");
+					command.setAbsolutePrintPosition(390);
+					command.setPrint();
+				}
+			
+				//合计
+				command.bold(5); //加粗
+				command.setAbsolutePrintPosition(50);
+				command.setText("件数："+total);
+				command.setAbsolutePrintPosition(200);
+				command.setText("合计："+that.sumPrice(that.products)+"元");
+				command.setPrint();
+				
+				// 收银员
+				// command.rowSpace(120); //间距
+				// command.setText("收银："+that.model.checker);
+				// command.setPrint()
+			
+				//提示
+				command.rowSpace(80); //间距
+				//command.bold(2); 
+				//command.setSelectJustification(0); //左对齐
+				// command.setText("售出商品购买后7天内,可凭小票退换");
+				// command.setPrint();
+				// command.setText("(注：吊牌未拆剪,商品未洗涤)");
+				// command.setPrint();
+			
+				//电话
+				command.setSelectJustification(0); //居左
+				command.setText("联系电话:18177150996");
+				command.setPrint();
+				// command.setText("联系地址:马山县周鹿镇中心街桥头路交汇处");
+				// command.setPrint();
+				command.setText("确认签字：");
+				command.setPrint();
+				
+				
+				
+			
+				command.setPrintAndFeedRow(3);
+			
+				that.isReceiptSend = true;
+				that.prepareSend(command.getData());
+			},
+			//准备发送，根据每次发送字节数来处理分包数量
+			prepareSend(buff) {
+				console.log(2);
+				console.log(buff);
+				let that = this
+				let time = that.oneTimeData
+				let looptime = parseInt(buff.length / time);
+				let lastData = parseInt(buff.length % time);
+				console.log(looptime + "---" + lastData)
+				this.looptime = looptime + 1;
+				this.lastData = lastData;
+				this.currentTime = 1;
+				that.Send(buff)
+			},
+			//分包发送
+			Send(buff) {
+				let that = this
+				let {
+					currentTime,
+					looptime: loopTime,
+					lastData,
+					oneTimeData: onTimeData,
+					printerNum: printNum,
+					currentPrint
+				} = that;
+				let buf;
+				let dataView;
+				if (currentTime < loopTime) {
+					buf = new ArrayBuffer(onTimeData)
+					dataView = new DataView(buf)
+					for (var i = 0; i < onTimeData; ++i) {
+						dataView.setUint8(i, buff[(currentTime - 1) * onTimeData + i])
+					}
+				} else {
+					buf = new ArrayBuffer(lastData)
+					dataView = new DataView(buf)
+					for (var i = 0; i < lastData; ++i) {
+						dataView.setUint8(i, buff[(currentTime - 1) * onTimeData + i])
+					}
+				}
+				console.log("第" + currentTime + "次发送数据大小为：" + buf.byteLength)
+				let {
+					BLEInformation
+				} = that.Bluetooth;
+				console.log(BLEInformation);
+				if(BLEInformation==undefined || BLEInformation.deviceId==undefined){
+					that.isReceiptSend = false;
+					that.contentMsg = '无法获取蓝牙信息！'
+					that.openModal = true;
+					return
+				}
+				uni.writeBLECharacteristicValue({
+					deviceId: BLEInformation.deviceId,
+					serviceId: BLEInformation.writeServiceId,
+					characteristicId: BLEInformation.writeCharaterId,
+					value: buf,
+					success: function(res) {
+						console.log("打印成功！")
+						that.newDateFlag = false;
+						console.log(res)
+						// if(res.code ==0){
+							currentTime++
+							if (currentTime <= loopTime) {
+								that.currentTime = currentTime;
+								that.Send(buff)
+							} else {
+								if (currentPrint == printNum) {
+									that.looptime = 0;
+									that.lastData = 0;
+									that.currentTime = 1;
+									that.isReceiptSend = false;
+									that.currentPrint = 1;
+									that.submitModal = true;
+									that.isReceiptSend = false;
+								} else {//以下为打印多张时循环
+									currentPrint++;
+									that.currentPrint = currentPrint;
+									that.currentTime = 1;
+									that.Send(buff)
+								}
+							}
+					},
+					fail: function(e) {
+						console.log("打印失败！")
+						console.log(e)
+						that.isReceiptSend = false;
+						that.contentMsg ="打印失败!"+e.errCode
+						that.openModal = true;
+						return;
+					}
+				})
+			},
 		}
 	}
 </script>
@@ -286,7 +562,8 @@
 	.title{
 		background: #f2f2f2;
 		font-weight: bold;
-		font-size: 34rpx;
+		font-size: 28rpx;
+		padding-top: 8rpx;
 		line-height: 2;
 	}
 	.context{

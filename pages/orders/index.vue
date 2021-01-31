@@ -4,7 +4,7 @@
 			<u-calendar v-model="calendar" mode="date" @change="chooseDate"></u-calendar>
 			<view>
 				<view style="width: 30%;float: left;"><u-input v-model="selectDate" type="text" input-align="center"  :disabled="true" placeholder="请选择日期" :custom-style="inputStyle" @click="calendar = true"/></view>
-				<view style="width: 65%;float: right;"><u-search v-model="searchName" :action-style="searchBtnStyle" shape="round" input-align="center" placeholder="请输入客户名称" @custom="search" ></u-search></view>
+				<view style="width: 65%;float: right;"><u-search v-model="searchName" :action-style="searchBtnStyle" shape="round" input-align="center" placeholder="请输入查询名称" @custom="search" ></u-search></view>
 			</view>
 		</view>
 		<view class="u-tabs-box">
@@ -12,6 +12,75 @@
 		</view>
 		<swiper class="swiper-box" :current="swiperCurrent" @transition="transition" @animationfinish="animationfinish">
 			<!-- 第一栏 -->
+			<swiper-item class="swiper-item" >
+				<scroll-view scroll-y style="height: 100%;width: 100%;" @scrolltolower="reachBottom">
+					<view class="page-box">
+						<view v-if="importList.length == 0">
+							<view class="centre">
+								<image src="https://cdn.uviewui.com/uview/template/taobao-order.png" mode=""></image>
+								<view class="explain">
+									暂无数据
+									<view class="tips">可以去看看有哪些品种</view>
+								</view>
+							</view>
+						</view>
+						<view class="order" v-for="(res, front) in importList" :key="res.id">
+							<view class="top">
+								<view class="left">
+									<u-icon name="account" :size="40" color="rgb(94,94,94)"></u-icon>
+									<view class="store">{{res.pcpName}}</view>
+								</view>
+								<view class="right" style="font-size: 28rpx; font-weight: bold;">{{res.company?res.company:''}}</view>
+							</view>
+							
+							<view class="item">
+								<u-row gutter="0" style="width: 100%;">
+									<u-col span="4">
+										<view class="demo-layout layout-title">时间</view>
+									</u-col>
+									<u-col span="4">
+										<view class="demo-layout layout-title">品种</view>
+									</u-col>
+									<u-col span="2">
+										<view class="demo-layout layout-title">数量</view>
+									</u-col>
+									<u-col span="2">
+										<view class="demo-layout layout-title">件数</view>
+									</u-col>
+									<view v-for="(item,index) in res.stock" :key="item.id">
+									<u-col span="4">
+										<view class="demo-layout layout-content">{{item.inDate}}</view>
+									</u-col>
+									<u-col span="4">
+										<view class="demo-layout layout-content">{{item.pdName}}</view>
+									</u-col>
+									<u-col span="2">
+										<view class="demo-layout layout-content">{{item.count}}</view>
+									</u-col>
+									<u-col span="2">
+										<view class="demo-layout layout-content">{{item.unit}}</view>
+									</u-col>
+									</view>
+								</u-row>
+							</view>
+							<view class="total" >
+								共
+								<text class="total-price">{{res.countType}}</text>
+								种类型 合计:
+								<text class="total-price">
+									￥{{priceInt(res.totalCost)}}
+									<text class="decimal">.{{priceDecimal(res.totalCost)}}</text>
+								</text>
+							</view>
+							<view class="bottom">
+								
+							</view>
+						</view>
+						<u-loadmore :status="loadStatus[0]" bgColor="#f2f2f2"></u-loadmore>
+					</view>
+				</scroll-view>
+			</swiper-item>
+			<!-- 第二栏 -->
 			<swiper-item class="swiper-item">
 				<scroll-view scroll-y style="height: 100%;width: 100%;" @scrolltolower="reachBottom">
 					<view class="page-box">
@@ -22,10 +91,8 @@
 									暂无数据
 									<view class="tips">可以去看看有哪些品种</view>
 								</view>
-								<!-- <view class="btn">随便逛逛</view> -->
 							</view>
 						</view>
-						
 						<view class="order" v-for="(res, front) in orderList" :key="res.id">
 							<view class="top">
 								<view class="left">
@@ -34,7 +101,6 @@
 								</view>
 								<view class="right">{{ res.createTime }}</view>
 							</view>
-							
 							<view class="item" v-for="(item, index) in res.orderDetails" :key="item.id" @click="productInfo(res.orderDetails[index])">
 								<view class="left">
 									<image style="width: 90px; height: 90px;" :src="ip+item.imgUrl" :lazy-load="true" mode="aspectFill"></image>
@@ -63,20 +129,18 @@
 									<text class="decimal">{{ priceDecimal(res.totalPrice) }}</text>
 								</text>
 							</view>
-							
 							<view class="bottom">
 								<!-- <view class="more"><u-icon name="more-dot-fill" color="rgb(203,203,203)"></u-icon></view>
 								<view class="logistics btn">查看物流</view>
 								<view class="exchange btn">卖了换钱</view>
 								<view class="evaluate btn">评价</view> -->
 							</view>
-							
 						</view>
-						<u-loadmore :status="loadStatus[0]" bgColor="#f2f2f2"></u-loadmore>
+						<u-loadmore :status="loadStatus[1]" bgColor="#f2f2f2"></u-loadmore>
 					</view>
 				</scroll-view>
 			</swiper-item>
-				<!-- 第二栏 -->
+			<!-- 第三栏 -->
 			<swiper-item class="swiper-item">
 				<scroll-view scroll-y style="height: 100%;width: 100%;" @scrolltolower="reachBottom">
 					<view class="page-box">
@@ -87,10 +151,8 @@
 									暂无数据
 									<view class="tips">可以去看看有哪些品种</view>
 								</view>
-								<!-- <view class="btn">随便逛逛</view> -->
 							</view>
 						</view>
-						
 						<view class="order" v-for="(res, front) in wholesale" :key="res.id">
 							<view class="top">
 								<view class="left">
@@ -99,7 +161,6 @@
 								</view>
 								<view class="right">{{ res.createTime }}</view>
 							</view>
-							
 							<view class="item" v-for="(item, index) in res.saleDetails" :key="item.id" @click="productInfo(res.saleDetails[index])">
 								<view class="left">
 									<image style="width: 90px; height: 90px;" :src="ip+item.imgUrl" :lazy-load="true" mode="aspectFill"></image>
@@ -128,19 +189,17 @@
 									<text class="decimal">{{ priceDecimal(res.totalPrice) }}</text>
 								</text>
 							</view>
-							
 							<view class="bottom">
 								<!-- <view class="more"><u-icon name="more-dot-fill" color="rgb(203,203,203)"></u-icon></view>
 								<view class="logistics btn">查看物流</view>
 								<view class="exchange btn">卖了换钱</view>
 								<view class="evaluate btn">评价</view> -->
 							</view>
-							
 						</view>
-						<u-loadmore :status="loadStatus[1]" bgColor="#f2f2f2"></u-loadmore>
+						<u-loadmore :status="loadStatus[2]" bgColor="#f2f2f2"></u-loadmore>
 					</view>
 				</scroll-view>
-			</swiper-item>											
+			</swiper-item>	
 		</swiper>
 	</view>
 </template>
@@ -155,18 +214,13 @@ export default {
 			selectDate:"",
 			orderList: [],
 			wholesale: [],
+			importList:[],
 			calendar:false,
 			orderLimit:0,
 			saleLimit:0,
+			importLimit:0,
 			toOnShow:false,
-			list: [
-				{
-					name: '发票记录'
-				},
-				{
-					name: '批发记录'
-				}
-			],
+			list: [{name:'进货记录'},{name: '发票记录'},{name: '批发记录'}],
 			current: 0,
 			swiperCurrent: 0,
 			tabsHeight: 0,
@@ -191,6 +245,11 @@ export default {
 		this.searchName="";
 		this.selectDate="";
 		setTimeout(function() {
+			that.importList = [];
+			that.importLimit = 0;
+			that.getImportList();
+			
+			
 			that.orderList = [];
 			that.orderLimit = 0;
 			that.getOrderList();
@@ -198,25 +257,33 @@ export default {
 			that.saleLimit = 0;
 			that.wholesale = [];
 			that.getSaleList();
+			
+			
 			uni.stopPullDownRefresh(); //停止下拉刷新动画
 		}, 1000);
 	},
 	onLoad() {
 		that = this;
-		console.log("onLoad")
-		//this.toOnShow = false;
-		if(this.orderList.length<5)
-			this.loadStatus.splice(0,1,"nomore")
+		this.getImportList();
+		
+		setTimeout(() => {that.getOrderList();}, 10);
+		setTimeout(() => {that.getSaleList();}, 20);
+		
+		setTimeout(() => {
+			if(this.importList.length<5)
+				this.loadStatus.splice(0,1,"nomore");
 			
-			
-		if(this.wholesale.length<5)
-			this.loadStatus.splice(1,1,"nomore")
-			
-		this.getOrderList();
-		this.getSaleList()
+			if(this.orderList.length<5)
+				this.loadStatus.splice(1,1,"nomore");
+				
+			if(this.wholesale.length<5)
+				this.loadStatus.splice(2,1,"nomore");
+				
+		}, 200);
+		
 	},
 	onShow() {
-		console.log("onShow")
+		//防止与onLoad加载冲突
 		if(this.toOnShow){
 			if (uni.getStorageSync('reloadOrders')) {
 				that.orderList = [];
@@ -233,32 +300,25 @@ export default {
 		}
 		this.toOnShow = true;
 	},
+	
 	computed: {
-		// 价格小数
-		priceDecimal() {
-			return val => {
-				if (val !== parseInt(val)) return val.slice(-2);
-				else return '00';
-			};
-		},
-		// 价格整数
-		priceInt() {
-			return val => {
-				if (val !== parseInt(val)) return val.split('.')[0];
-				else return val;
-			};
-		}
+
 	},
 	methods: {
 		search(){
-			console.log(this.swiperCurrent);
+			
 			switch(this.swiperCurrent){
 				case 0:
+					this.importLimit = 0;
+					this.importList = [];
+					setTimeout(() => {that.getImportList();}, 200);
+				break;
+				case 1:
 					this.orderLimit = 0;
 					this.orderList = [];
 					setTimeout(() => {that.getOrderList();}, 200);
 				break;
-				case 1:
+				case 2:
 					this.saleLimit = 0;
 					this.wholesale = [];
 					setTimeout(() => {that.getSaleList();}, 200);
@@ -271,8 +331,19 @@ export default {
 		},
 		//滑到底部加载更多
 		reachBottom() {
+			
 			switch(this.swiperCurrent){
 				case 0:
+					if(this.importLimit*5>that.importList.length){
+						this.loadStatus.splice(this.current,1,"nomore")
+						return
+					}
+					setTimeout(() => {
+						this.loadStatus.splice(this.current,1,"loading")
+						setTimeout(() => {this.getImportList();}, 1200);
+					}, 500);
+				break;
+				case 1:
 					if(this.orderLimit*5>that.orderList.length){
 						this.loadStatus.splice(this.current,1,"nomore")
 						return
@@ -282,7 +353,7 @@ export default {
 						setTimeout(() => {this.getOrderList();}, 1200);
 					}, 500);
 				break;
-				case 1:
+				case 2:
 				if(this.saleLimit*5>that.wholesale.length){
 					this.loadStatus.splice(this.current,1,"nomore")
 					return
@@ -294,6 +365,24 @@ export default {
 				break;
 			}
 		},
+		getImportList() {
+			this.$Request.getT('/getImportList/'+that.importLimit+'?searchName='+that.searchName+'&selectDate='+that.selectDate).then(res => {
+				if (res.status == 200) {
+					let dataList = res.data;
+					if(dataList == null || dataList.length == 0){
+						this.loadStatus.splice(this.current,1,"nomore")
+						that.importLimit++;
+						return;
+					}
+					dataList.map(val=>that.importList.push(val));
+					that.loadStatus.splice(that.current,1,"loadmore")
+					that.importLimit++;
+				}else {
+					this.$queue.showToast(res.msg);
+				}
+				
+			})
+		},
 		// 发票记录
 		getOrderList() {
 			this.$Request.getT('/getOrders/'+that.orderLimit+'?searchName='+that.searchName+'&selectDate='+that.selectDate).then(res => {
@@ -301,6 +390,7 @@ export default {
 					let dataList = res.data;
 					if(dataList == null || dataList.length == 0){
 						this.loadStatus.splice(this.current,1,"nomore")
+						that.orderLimit++;
 						return;
 					}
 					dataList.map(val=>that.orderList.push(val));
@@ -319,6 +409,7 @@ export default {
 					let dataList = res.data;
 					if(dataList == null || dataList.length == 0){
 						this.loadStatus.splice(this.current,1,"nomore")
+						that.saleLimit++;
 						return;
 					}
 					dataList.map(val=>that.wholesale.push(val));
@@ -331,7 +422,6 @@ export default {
 			})
 		},
 		productInfo(item) {
-			//console.log(item)
 			uni.navigateTo({
 				url: '../front/productInfo?id=' + item.productId
 			})
@@ -339,6 +429,24 @@ export default {
 		
 		totalNum(item) {
 			return item.length;
+		},
+		// 价格小数
+		priceDecimal(val) {
+			if (val !== parseInt(val)){
+				val = val.toString()
+				return val.slice(-2);
+			}
+			else 
+				return '00';
+		},
+		// 价格整数
+		priceInt(val) {
+			if (val !== parseInt(val)){
+				val = val.toString()
+				return val.split('.')[0];
+			}
+			else 
+				return val;
 		},
 		// tab栏切换
 		change(index) {
@@ -540,6 +648,24 @@ page {
 		font-size: 26rpx;
 		background: linear-gradient(270deg, rgba(249, 116, 90, 1) 0%, rgba(255, 158, 1, 1) 100%);
 	}
+}
+.demo-layout{
+	text-align: center;
+	padding: 5px 3px;
+	height: 65rpx;
+	font-size: 30rpx;
+}
+.layout-title{
+	border: solid 1px #e4e7ed;
+	color: #303133;
+	font-weight: bold;
+	background-color: #f5f6f8;
+}
+.layout-content{
+	border-bottom: solid 1px #e4e7ed;
+	border-right: solid 1px #e4e7ed;
+	border-left: solid 1px #e4e7ed;
+	
 }
 .wrap {
 	display: flex;

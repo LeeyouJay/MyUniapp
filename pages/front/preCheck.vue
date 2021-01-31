@@ -79,7 +79,7 @@
 			</view>
 		</view>
 		<u-select mode="single-column" :list="selectList" v-model="selectShow" @confirm="selectConfirm"></u-select>
-		<u-modal v-model="openModal" content="请重新连接打印机!" confirm-text="去连接" :show-cancel-button="true" @confirm="toConnect" @cancel="doNothing"></u-modal>
+		<u-modal v-model="openModal" :content="contentMsg" confirm-text="去连接" :show-cancel-button="true" @confirm="toConnect" @cancel="doNothing"></u-modal>
 		<u-modal v-model="submitModal" content="已打印成功!" confirm-text="提交" :show-cancel-button="true" @confirm="submit" @cancel="doNothing"></u-modal>
 	</view>
 </template>
@@ -91,9 +91,8 @@
 	var encode = require("../../util/ble/encoding.js");
 	export default {
 		data() {
-			let that = this;
 			return {
-				remember:true,
+				//打印相关
 				looptime: 0,
 				currentTime: 1,
 				lastData: 0,
@@ -101,18 +100,22 @@
 				printNum: [],
 				printerNum: 1,
 				currentPrint: 1,
-				isReceiptSend: false,
 				isLabelSend: false,
+				//提示相关
+				isReceiptSend: false,
+				contentMsg:'请重新连接打印机!',
 				openModal: false,
 				submitModal:false,
+				newDateFlag:true,
 				totalPrice: 0,
+				printTime:"",
 				model: {
 					name: '未填写',
 					payType: '现金',
 					region: '周鹿街',
 					phone: '',
 					checker: '',
-					support:'18177150996'
+					support:''
 				},
 				selectList: [],
 				rules: {
@@ -193,6 +196,7 @@
 			that = this;
 			that.getBluetooth();
 			this.model.checker = uni.getStorageSync('checker');
+			this.model.support = uni.getStorageSync('support');
 			that.selectGoods = JSON.parse(options.data);
 			that.totalPrice = options.totalPrice;
 			that.getRegion();
@@ -244,18 +248,36 @@
 					}
 				})
 			},
+			createTime(){
+				var date = new Date();
+				var year = date.getFullYear();
+				var mon = date.getMonth() + 1;
+				var da = date.getDate();
+				var h = date.getHours();
+				var m = date.getMinutes();
+				var s = date.getSeconds();
+				var str = year + '-' + mon + '-' + da +  ' ' + h + ':' + m + ':' + s;
+				that.printTime = str
+			},
 			submit() {
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
-						console.log('验证通过');
+						uni.setStorageSync('support', this.model.support);
+						if(that.newDateFlag){
+							that.createTime();
+							console.log('验证通过');
+						}
+						
 						var data = {
 							consumer: that.model.name,
 							payType: that.model.payType,
 							region: that.model.region,
 							phone: that.model.phone,
-							checker: that.model.checker
+							checker: that.model.checker,
+							createTime:that.printTime,
+							orderDetails:that.goodsArray
 						}
-						that.addOrder(data, that.goodsArray);
+						that.addOrder(data);
 					} else {
 						console.log('验证失败');
 					}
@@ -272,9 +294,8 @@
 					this.model.region += this.model.region == '' ? val.label : '-' + val.label;
 				})
 			},
-			addOrder(data, goodsArray) {
-				this.$Request.post("/addOrder?consumer=" + data.consumer + "&payType=" + data.payType + "&region=" + data.region +
-					"&phone=" + data.phone + "&checker=" + data.checker, goodsArray).then(res => {
+			addOrder(data) {
+				this.$Request.post("/addOrder", data).then(res => {
 					if (res.status == 200) {
 						this.$queue.showToast("提交成功！")
 						let pages = getCurrentPages(); // 当前页面
@@ -302,6 +323,7 @@
 				var that = this;
 				var canvasWidth = 180
 				var canvasHeight = 180
+				that.createTime(); 
 				Date.prototype.Format = function (fmt) { // author: meizz
 				    var o = {
 				        "M+": this.getMonth() + 1, // 月份
@@ -318,7 +340,7 @@
 				        if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
 				            return fmt;
 				}
-				var time = new Date().Format("yyyy-MM-dd hh:mm:ss"); 
+				
 				console.log(that.Bluetooth);
 				var command = esc.jpPrinter.createNew()
 				command.init()
@@ -335,7 +357,7 @@
 				command.setFontSize(0); //正常字体
 				//时间
 				command.setSelectJustification(0); //居左
-				command.setText("打印时间："+time);
+				command.setText("打印时间："+that.printTime);
 				command.setPrint();
 				//编号
 				command.setSelectJustification(0); //居左
@@ -453,6 +475,7 @@
 				console.log(BLEInformation);
 				if(BLEInformation==undefined || BLEInformation.deviceId==undefined){
 					that.isReceiptSend = false;
+					that.contentMsg = '无法获取蓝牙信息！'
 					that.openModal = true;
 					return
 				}
@@ -463,6 +486,7 @@
 					value: buf,
 					success: function(res) {
 						console.log("打印成功！")
+						that.newDateFlag = false;
 						console.log(res)
 						// if(res.code ==0){
 							currentTime++
@@ -496,6 +520,7 @@
 						console.log("打印失败！")
 						console.log(e)
 						that.isReceiptSend = false;
+						that.contentMsg ="打印失败!"+e.code
 						that.openModal = true;
 						return;
 					}

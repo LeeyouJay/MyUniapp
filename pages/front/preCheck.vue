@@ -2,7 +2,7 @@
 	<view class="wrap">
 		<u-form :model="model" :rules="rules" ref="uForm" :errorType="errorType">
 			<u-form-item label-width="150" :label-position="labelPosition" label="客户名称" prop="name">
-				<u-input :border="border" placeholder="请输入客户姓名" v-model="model.name" type="text"></u-input>
+				<u-input :border="border" placeholder="请输入客户姓名" v-model="model.name" @blur="onName" type="text"></u-input>
 			</u-form-item>
 			<u-form-item :label-position="labelPosition" label="结算方式" prop="payType" label-width="150">
 				<u-radio-group v-model="radio" @change="radioGroupChange">
@@ -10,15 +10,14 @@
 				</u-radio-group>
 			</u-form-item>
 			<u-form-item :label-position="labelPosition" label="所在地区" prop="region" label-width="150">
-				<u-input :border="border" type="select" :select-open="selectShow" v-model="model.region" placeholder="请选择商品类型"
-				 @click="selectShow = true"></u-input>
+				<u-input :border="border"  placeholder="请输入所在地区" v-model="model.region" @blur="onRegion" type="text"></u-input>
 			</u-form-item>
-			<u-form-item :rightIconStyle="{color: '#888', fontSize: '32rpx'}" right-icon="kefu-ermai" :label-position="labelPosition"
+			<u-form-item :rightIconStyle="{color: '#888', fontSize: '32rpx'}" right-icon="phone" :label-position="labelPosition"
 			 label="联系方式" label-width="150" prop="phone">
 				<u-input :border="border" placeholder="请输入客户手机号" v-model="model.phone" type="number"></u-input>
 			</u-form-item>
 			<u-form-item :label-position="labelPosition" label="收银员" label-width="150" prop="checker">
-				<u-input :border="border" placeholder="请输您的姓名" v-model="model.checker" type="text"></u-input>
+				<u-input :border="border" placeholder="请输您的姓名" v-model="model.checker" @blur="onChecker" type="text"></u-input>
 			</u-form-item>
 			<u-form-item :label-position="labelPosition" label="售后电话" label-width="150" >
 				<u-input :border="border" placeholder="请输售后电话" v-model="model.support" type="number"></u-input>
@@ -80,7 +79,7 @@
 		</view>
 		<u-select mode="single-column" :list="selectList" v-model="selectShow" @confirm="selectConfirm"></u-select>
 		<u-modal v-model="openModal" :content="contentMsg" confirm-text="去连接" :show-cancel-button="true" @confirm="toConnect" @cancel="doNothing"></u-modal>
-		<u-modal v-model="submitModal" content="已打印成功!" confirm-text="提交" :show-cancel-button="true" @confirm="submit" @cancel="doNothing"></u-modal>
+		<u-modal v-model="submitModal" content="数据发送成功!" confirm-text="提交" :show-cancel-button="true" @confirm="submit" @cancel="doNothing"></u-modal>
 	</view>
 </template>
 
@@ -110,7 +109,7 @@
 				totalPrice: 0,
 				printTime:"",
 				model: {
-					name: '未填写',
+					name: '',
 					payType: '现金',
 					region: '周鹿街',
 					phone: '',
@@ -123,14 +122,14 @@
 							required: true,
 							message: '请输入姓名',
 							trigger: 'blur',
-						},
-						{
-							validator: (rule, value, callback) => {
-								return this.$u.test.chinese(value);
-							},
-							message: '姓名必须为中文',
-							trigger: ['change', 'blur'],
 						}
+						// ,{
+						// 	validator: (rule, value, callback) => {
+						// 		return this.$u.test.chinese(value);
+						// 	},
+						// 	message: '姓名必须为中文',
+						// 	trigger: ['change', 'blur'],
+						// }
 					],
 					payType: [{
 						required: true,
@@ -139,8 +138,8 @@
 					}],
 					region: [{
 						required: true,
-						message: '请选择地区',
-						trigger: 'change',
+						message: '请输入地区',
+						trigger: 'blur',
 					}],
 					phone: [{
 						validator: (rule, value, callback) => {
@@ -197,9 +196,10 @@
 			that.getBluetooth();
 			this.model.checker = uni.getStorageSync('checker');
 			this.model.support = uni.getStorageSync('support');
+			this.model.region = uni.getStorageSync('region');
 			that.selectGoods = JSON.parse(options.data);
 			that.totalPrice = options.totalPrice;
-			that.getRegion();
+			//that.getRegion();
 			for (var i = 0; i < that.selectGoods.length; i++) {
 				var good = {
 					pdName: that.selectGoods[i].pdName,
@@ -224,6 +224,18 @@
 			this.$refs.uForm.setRules(this.rules);
 		},
 		methods: {
+			onName(e){
+				if(!e){
+					e = "未填写";
+				}
+				this.model.name = e;
+			},
+			onChecker(e){
+				this.model.checker = e;
+			},
+			onRegion(e){
+				this.model.region = e;
+			},
 			getBluetooth(){
 				this.Bluetooth = uni.getStorageSync("Bluetooth");
 			},
@@ -263,6 +275,7 @@
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
 						uni.setStorageSync('support', this.model.support);
+						uni.setStorageSync('region', this.model.region);
 						if(that.newDateFlag){
 							that.createTime();
 							console.log('验证通过');
@@ -351,7 +364,7 @@
 				command.rowSpace(100);
 				command.setText("周鹿种子销售中心");
 				command.setPrint();
-				command.rowSpace(60);
+				command.rowSpace(80);
 
 				command.bold(0); //取消加粗
 				command.setFontSize(0); //正常字体
@@ -361,7 +374,7 @@
 				command.setPrint();
 				//编号
 				command.setSelectJustification(0); //居左
-				command.setText("客户名称："+that.model.name);
+				command.setText("客户名称："+that.model.name+" "+that.model.phone);
 				command.setPrint();
 				
 				command.setSelectJustification(0); //居左
@@ -372,7 +385,7 @@
 				command.bold(5); //加粗
 				command.setText("品种");
 				command.setAbsolutePrintPosition(100);
-				command.setText("数量");
+				command.setText("数量(包)");
 				command.setAbsolutePrintPosition(200);
 				command.setText("单价");
 				command.setAbsolutePrintPosition(270);
@@ -520,7 +533,7 @@
 						console.log("打印失败！")
 						console.log(e)
 						that.isReceiptSend = false;
-						that.contentMsg ="打印失败!"+e.code
+						that.contentMsg ="打印失败!"+e.errCode
 						that.openModal = true;
 						return;
 					}

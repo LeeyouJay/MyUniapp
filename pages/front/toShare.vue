@@ -12,10 +12,10 @@
 							<template v-slot:left="{leftList}">
 								<view class="demo-warter" v-for="(item, index) in leftList" :key="index">
 									<!-- 警告：微信小程序不支持嵌入lazyload组件，请自行如下使用image标签 -->
-									<!-- #ifndef MP-WEIXIN -->
-									<u-lazy-load threshold="-450" border-radius="10" :image="item.img" :index="index"></u-lazy-load>
-									<!-- #endif -->
 									<!-- #ifdef MP-WEIXIN -->
+									<u-lazy-load threshold="-450" border-radius="10"  @click="productInfo(item.id)" :image="item.img" :index="index"></u-lazy-load>
+									<!-- #endif -->
+									<!-- #ifndef MP-WEIXIN -->
 									<view class="demo-img-wrap" @click="productInfo(item.id)">
 										<image class="demo-image" :src="item.img" mode="widthFix"></image>
 									</view>
@@ -41,10 +41,10 @@
 							</template>
 							<template v-slot:right="{rightList}">
 								<view class="demo-warter" v-for="(item, index) in rightList" :key="index">
-									<!-- #ifndef MP-WEIXIN -->
-									<u-lazy-load threshold="-450" border-radius="10" :image="item.img" :index="index"></u-lazy-load>
-									<!-- #endif -->
 									<!-- #ifdef MP-WEIXIN -->
+									<u-lazy-load threshold="-450" border-radius="10"  @click="productInfo(item.id)" :image="item.img" :index="index"></u-lazy-load>
+									<!-- #endif -->
+									<!-- #ifndef MP-WEIXIN -->
 									<view class="demo-img-wrap" @click="productInfo(item.id)">
 										<image class="demo-image" :src="item.img" mode="widthFix"></image>
 									</view>

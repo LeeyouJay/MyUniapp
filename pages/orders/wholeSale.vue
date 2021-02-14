@@ -2,18 +2,22 @@
 	<view class="u-wrap">
 		<u-form :model="model" :rules="rules" ref="uForm" :errorType="errorType">
 			<u-form-item label-width="150" :label-position="left" label="客户名称" prop="name">
-				<u-input :border="border" placeholder="请输入客户姓名" v-model="model.name" type="text"></u-input>
+				<u-input :border="true" placeholder="请输入客户姓名" v-model="model.name" @blur="onName" type="text"></u-input>
 			</u-form-item>
 
-			<u-form-item :rightIconStyle="{color: '#888', fontSize: '32rpx'}" right-icon="kefu-ermai" :label-position="left"
+			<u-form-item :rightIconStyle="{color: '#888', fontSize: '32rpx'}" right-icon="phone" :label-position="left"
 			 label="联系方式" label-width="150" prop="phone">
-				<u-input :border="border" placeholder="请输入客户手机号" v-model="model.phone" type="number"></u-input>
+				<u-input :border="true" placeholder="请输入客户手机号" v-model="model.phone" type="number"></u-input>
 			</u-form-item>
 			
-			<u-form-item :label-position="left" label="结算方式" prop="payType" label-width="150">
+			<u-form-item :label-position="left" label="结算状态" prop="payType" label-width="150">
 				<u-radio-group v-model="radio" @change="radioGroupChange">
 					<u-radio shape="circle" v-model="item.checked" v-for="(item, index) in radioList" :key="index" :name="item.name">{{ item.name }}</u-radio>
 				</u-radio-group>
+			</u-form-item>
+			<u-form-item :rightIconStyle="{color: '#888', fontSize: '32rpx'}" right-icon="edit-pen" :label-position="left"
+			 label="备注" label-width="150" prop="remark">
+				<u-input :border="true" placeholder="请输入详细备注" v-model="model.remark" @blur="onRemark" type="textarea" :height="50" :auto-height="true"></u-input>
 			</u-form-item>
 			
 		</u-form>
@@ -113,22 +117,23 @@
 				},
 				model: {
 					name: '',
-					payType: '银行转账',
+					payType: '未支付',
 					phone: '',
+					remark:''
 				},
 				rules: {
 					name: [{
 							required: true,
 							message: '请输入姓名',
 							trigger: 'blur',
-						},
-						{
-							validator: (rule, value, callback) => {
-								return this.$u.test.chinese(value);
-							},
-							message: '姓名必须为中文',
-							trigger: ['change', 'blur'],
 						}
+						// ,{
+						// 	validator: (rule, value, callback) => {
+						// 		return this.$u.test.chinese(value);
+						// 	},
+						// 	message: '姓名必须为中文',
+						// 	trigger: ['change', 'blur'],
+						// }
 					],
 					phone: [{
 						validator: (rule, value, callback) => {
@@ -141,24 +146,21 @@
 						trigger: ['blur'],
 					}]
 				},
-				radioList: [{
-						name: '银行转账',
-						checked: true,
-					},
-					{
-						name: '支付宝',
-						checked: false,
-					},
-					{
-						name: '微信',
-						checked: false,
-					},
+				radioList: [
 					{
 						name: '未支付',
-						checked: false,
+						checked: true
+					},
+					{
+						name: '部分已付',
+						checked: false
+					},
+					{	
+						name:'已付清',
+						checked:false
 					}
 				],
-				radio:'银行转账',
+				radio:'未支付',
 				errorType: ['message'],
 			}
 		},
@@ -175,6 +177,12 @@
 			this.getBluetooth();
 		},
 		methods: {
+			onName(e){
+				this.model.name = e;
+			},
+			onRemark(e){
+				this.model.remark = e;
+			},
 			submit() {
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
@@ -192,6 +200,7 @@
 							payType: that.model.payType,
 							phone: that.model.phone,
 							createTime : that.printTime,
+							remark:that.model.remark,
 							saleDetails:that.products
 						}
 						that.addSaleOrder(data);
@@ -365,7 +374,7 @@
 				command.rowSpace(100);
 				command.setText("周鹿种子销售中心");
 				command.setPrint();
-				command.rowSpace(60);
+				command.rowSpace(80);
 			
 				command.bold(0); //取消加粗
 				command.setFontSize(0); //正常字体
@@ -375,7 +384,7 @@
 				command.setPrint();
 				//编号
 				command.setSelectJustification(0); //居左
-				command.setText("收货人："+that.model.name);
+				command.setText("收货人："+that.model.name+" "+that.model.phone);
 				command.setPrint();
 				
 				//列表
@@ -411,16 +420,20 @@
 			
 				//合计
 				command.bold(5); //加粗
-				command.setAbsolutePrintPosition(50);
-				command.setText("件数："+total);
+				// command.setAbsolutePrintPosition(50);
+				// command.setText("支付状态："+that.model.payType);
 				command.setAbsolutePrintPosition(200);
 				command.setText("合计："+that.sumPrice(that.products)+"元");
 				command.setPrint();
 				
-				// 收银员
-				// command.rowSpace(120); //间距
-				// command.setText("收银："+that.model.checker);
-				// command.setPrint()
+				command.rowSpace(80)
+				command.setAbsolutePrintPosition(0);
+				command.setText("支付状态："+that.model.payType);
+				command.setPrint()
+				//备注
+				//command.rowSpace(120); //间距
+				command.setText("备注："+that.model.remark);
+				command.setPrint()
 			
 				//提示
 				command.rowSpace(80); //间距

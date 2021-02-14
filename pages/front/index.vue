@@ -1,7 +1,7 @@
 <template>
 	<view class="u-wrap">
 		<view class="u-search-box">
-			<u-search v-model="searchValue" shape="round" placeholder="输入品种名称" :action-style="searchBtnStyle" @search="search" @custom="search"></u-search>
+			<u-search v-model="searchValue" shape="round" placeholder="输入品种名称" :action-style="searchBtnStyle" @custom="search" @blur="onSearch"></u-search>
 		</view>
 		<view class="u-menu-wrap">
 			<scroll-view scroll-y scroll-with-animation class="u-tab-view menu-scroll-view scroll-left" :scroll-top="scrollTop" :scroll-into-view="itemId">
@@ -20,10 +20,14 @@
 						<u-swipe-action :show="product.hide" v-for="(product, index) in item.products" :index="i" :secondIndex="index" :disabled = "product.move"
 						 :key="index" :options="product.options" @click="swipeClick" @open="swipeOpen" v-if="product.show">
 							<view :class="[product.value > 0 ? 'food border' : 'food']">
-									<u-image width="75px" height="75px" :src="ip+product.img" mode="aspectFill" @click="productInfo(product.id)">
+									<view style="width: 75px;height: 75px;" @click="productInfo(product.id)">
+										<u-lazy-load :image="ip+product.img" :border-radius="16" :height="136" img-mode="aspectFill"></u-lazy-load>
+									</view>
+									
+									<!-- <u-image width="75px" height="75px" :src="ip+product.img" mode="aspectFill" @click="productInfo(product.id)">
 										<u-loading slot="loading"></u-loading>
 										<view slot="error" style="font-size: 24rpx;">加载失败</view>
-									</u-image>
+									</u-image> -->
 									<view class="food-info">
 										<view class="food-title">{{product.pdName}}</view>
 										<view class="food-num">库存:{{product.num}}({{product.unit}})</view>
@@ -224,6 +228,9 @@
 			}, 1000);
 		},
 		methods: {
+			onSearch(e){
+				this.searchValue = e;
+			},
 			// 选中任一checkbox时，由checkbox-group触发
 			checkboxGroupChange(e) {
 				this.checkboxGoods = e

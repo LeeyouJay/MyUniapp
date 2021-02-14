@@ -4,7 +4,7 @@
 			<u-calendar v-model="calendar" mode="date" @change="chooseDate"></u-calendar>
 			<view>
 				<view style="width: 30%;float: left;"><u-input v-model="selectDate" type="text" input-align="center"  :disabled="true" placeholder="请选择日期" :custom-style="inputStyle" @click="calendar = true"/></view>
-				<view style="width: 65%;float: right;"><u-search v-model="searchName" :action-style="searchBtnStyle" shape="round" input-align="center" placeholder="请输入查询名称" @custom="search" ></u-search></view>
+				<view style="width: 65%;float: right;"><u-search v-model="searchName" :action-style="searchBtnStyle" shape="round" input-align="center" placeholder="请输入查询名称" @custom="search" @blur="onSearch"></u-search></view>
 			</view>
 		</view>
 		<view class="u-tabs-box">
@@ -26,7 +26,7 @@
 						</view>
 						<view class="order" v-for="(res, front) in importList" :key="res.id">
 							<view class="top">
-								<view class="left">
+								<view class="left" @click="toRemittance(res)">
 									<u-icon name="account" :size="40" color="rgb(94,94,94)"></u-icon>
 									<view class="store">{{res.pcpName}}</view>
 								</view>
@@ -99,11 +99,16 @@
 									<u-icon name="account" :size="40" color="rgb(94,94,94)"></u-icon>
 									<view class="store">{{ res.consumer }}</view>
 								</view>
+								<view class="tag region" >{{res.region}}</view>
 								<view class="right">{{ res.createTime }}</view>
 							</view>
 							<view class="item" v-for="(item, index) in res.orderDetails" :key="item.id" @click="productInfo(res.orderDetails[index])">
 								<view class="left">
-									<image style="width: 90px; height: 90px;" :src="ip+item.imgUrl" :lazy-load="true" mode="aspectFill"></image>
+									<!-- <image style="width: 90px; height: 90px;" :src="ip+item.imgUrl" :lazy-load="true" mode="aspectFill"></image> -->
+									<u-image :border-radius="18" width="90px" height="90px" :src="ip+item.imgUrl" mode="aspectFill">
+										<u-loading slot="loading"></u-loading>
+										<view slot="error" style="font-size: 24rpx;">加载失败</view>
+									</u-image>
 								</view>
 								<view class="midRight">
 									<view class="content">
@@ -120,16 +125,24 @@
 									</view>
 								</view>
 							</view>
-							<view class="total">
-								共
-								<text class="total-price">{{ totalNum(res.orderDetails) }}</text>
-								种类型 合计:
-								<text class="total-price">
-									￥{{ priceInt(res.totalPrice) }}.
-									<text class="decimal">{{ priceDecimal(res.totalPrice) }}</text>
-								</text>
+							<view style="display: flex;margin-top: 20rpx;">
+								<view style="width: 30%;padding: 0 20rpx;" >
+									<!-- <view class="tag hasPay" style="background-color: #2b85e4;" >{{res.region}}</view> -->
+								</view>
+								
+								<view class="total" style="width: 70%;">
+									共
+									<text class="total-price">{{ totalNum(res.orderDetails) }}</text>
+									种类型 合计:
+									<text class="total-price">
+										￥{{ priceInt(res.totalPrice) }}.
+										<text class="decimal">{{ priceDecimal(res.totalPrice) }}</text>
+									</text>
+								</view>
 							</view>
 							<view class="bottom">
+								联系电话：
+								<text @click="phoneCall(res.phone)">{{res.phone}}</text>
 								<!-- <view class="more"><u-icon name="more-dot-fill" color="rgb(203,203,203)"></u-icon></view>
 								<view class="logistics btn">查看物流</view>
 								<view class="exchange btn">卖了换钱</view>
@@ -163,7 +176,11 @@
 							</view>
 							<view class="item" v-for="(item, index) in res.saleDetails" :key="item.id" @click="productInfo(res.saleDetails[index])">
 								<view class="left">
-									<image style="width: 90px; height: 90px;" :src="ip+item.imgUrl" :lazy-load="true" mode="aspectFill"></image>
+									<!-- <image style="width: 90px; height: 90px;" :src="ip+item.imgUrl" :lazy-load="true" mode="aspectFill"></image> -->
+									<u-image :border-radius="18" width="90px" height="90px" :src="ip+item.imgUrl" mode="aspectFill">
+										<u-loading slot="loading"></u-loading>
+										<view slot="error" style="font-size: 24rpx;">加载失败</view>
+									</u-image>
 								</view>
 								<view class="midRight">
 									<view class="content">
@@ -180,16 +197,23 @@
 									</view>
 								</view>
 							</view>
-							<view class="total">
-								共
-								<text class="total-price">{{ totalNum(res.saleDetails) }}</text>
-								种类型 合计:
-								<text class="total-price">
-									￥{{ priceInt(res.totalPrice) }}.
-									<text class="decimal">{{ priceDecimal(res.totalPrice) }}</text>
-								</text>
+							<view style="display: flex;margin-top: 20rpx;">
+								<view style="width: 30%;padding: 0 20rpx;" @click="showRemark(res)">
+									<view class="tag" :class="[res.payType == '未支付'?'noPay':res.payType == '部分已付'?'somePay':'hasPay']">{{res.payType}}</view>
+								</view>
+								<view class="total" style="width: 70%;">
+									共
+									<text class="total-price">{{ totalNum(res.saleDetails) }}</text>
+									种类型 合计:
+									<text class="total-price">
+										￥{{ priceInt(res.totalPrice) }}.
+										<text class="decimal">{{ priceDecimal(res.totalPrice) }}</text>
+									</text>
+								</view>
 							</view>
 							<view class="bottom">
+								联系电话：
+								<text @click="phoneCall(res.phone)">{{res.phone}}</text>
 								<!-- <view class="more"><u-icon name="more-dot-fill" color="rgb(203,203,203)"></u-icon></view>
 								<view class="logistics btn">查看物流</view>
 								<view class="exchange btn">卖了换钱</view>
@@ -201,6 +225,25 @@
 				</scroll-view>
 			</swiper-item>	
 		</swiper>
+		<u-modal width="90%" :async-close="true" :show-title="false" :show-cancel-button="true" 
+		confirm-text="提交修改" cancel-text="返回" v-model="openModal" @confirm="submit" @cancel="doCancel">
+			<view class="slot-content">
+				<u-form :model="model" ref="uForm">
+					<u-form-item  label="结算方式" prop="payType" label-width="130">
+						<u-radio-group v-model="radio" @change="radioGroupChange">
+							<u-radio shape="circle" v-model="item.checked" v-for="(item, index) in radioList" :key="index" :name="item.name">{{ item.name }}</u-radio>
+						</u-radio-group>
+					</u-form-item>
+					<u-form-item :rightIconStyle="{color: '#888', fontSize: '28rpx'}" right-icon="edit-pen" label="记录" label-width="130" prop="record">
+						<u-input :border="true" :clearable="false" placeholder="添加更改记录" v-model="model.record" @blur="onRecord" type="textarea" :height="33" :auto-height="true"></u-input>
+					</u-form-item>
+					<u-form-item label="备注:" label-width="130" prop="remark">
+						<view style="line-height: 1.5;">{{remark}}</view>
+					</u-form-item>
+				</u-form>
+			</view>
+		</u-modal>
+		<u-modal title="备注" v-model="submitModal" :content="remark" :mask-close-able="true" :show-confirm-button="false"></u-modal>
 	</view>
 </template>
 
@@ -215,12 +258,36 @@ export default {
 			orderList: [],
 			wholesale: [],
 			importList:[],
+			openModal:false,
+			submitModal:false,
+			remark:'',
+			record:'',
 			calendar:false,
 			orderLimit:0,
 			saleLimit:0,
 			importLimit:0,
 			toOnShow:false,
 			list: [{name:'进货记录'},{name: '发票记录'},{name: '批发记录'}],
+			model:{
+				id:'',
+				payType:'',
+				record:''
+			},
+			radioList: [
+				{
+					name: '未支付',
+					checked: false
+				},
+				{
+					name: '部分已付',
+					checked: false
+				},
+				{	
+					name:'已付清',
+					checked:false
+				}
+			],
+			radio:'',
 			current: 0,
 			swiperCurrent: 0,
 			tabsHeight: 0,
@@ -266,8 +333,8 @@ export default {
 		that = this;
 		this.getImportList();
 		
-		setTimeout(() => {that.getOrderList();}, 10);
-		setTimeout(() => {that.getSaleList();}, 20);
+		setTimeout(() => {that.getOrderList();}, 50);
+		setTimeout(() => {that.getSaleList();}, 100);
 		
 		setTimeout(() => {
 			if(this.importList.length<5)
@@ -305,8 +372,33 @@ export default {
 
 	},
 	methods: {
+		phoneCall(phoneNumber){
+			if(isNaN(phoneNumber)) return
+			uni.setClipboardData({
+			    data: phoneNumber,
+			    success: function () {
+			        console.log("复制到剪切板")
+			    }
+			});
+			uni.makePhoneCall({
+			    phoneNumber: phoneNumber,
+				success: (res) => {
+					console.log("正在拨打电话....")
+				},
+				fail: (e) => {
+					console.log("拨打失败")
+				}
+			});
+		},
+		toRemittance(res){
+			uni.navigateTo({
+				url: '../orders/remittance?id='+res.id
+			})
+		},
+		onSearch(e){
+			this.searchName = e;
+		},
 		search(){
-			
 			switch(this.swiperCurrent){
 				case 0:
 					this.importLimit = 0;
@@ -326,8 +418,52 @@ export default {
 			}
 			
 		},
+		doCancel(){
+			this.model.record = ""
+		},
+		submit(){
+			this.changePayType()
+		},
+		onRecord(e){
+			this.model.record = e;
+		},
+		radioGroupChange(e) {
+			this.model.payType = e;
+		},
+		showRemark(sale){
+			if(sale.payType == '已付清'){
+				this.remark = sale.remark?sale.remark:'暂无'
+				this.submitModal = true;
+				return
+			}
+			this.model.id = sale.id;
+			this.model.payType = sale.payType;
+			if(sale.record)
+				this.model.record = sale.record;
+			this.radio = sale.payType;
+			this.radioList.map(val=>{
+				if(val.name == sale.payType)
+					val.checked = true;
+			})
+			this.remark = sale.remark?sale.remark:'暂无'
+			this.openModal = true ;
+		},
 		chooseDate(e){
 			that.selectDate = e.result;
+		},
+		changePayType(){
+			this.$Request.post("/changePayType", that.model).then(res => {
+				if (res.status == 200) {
+					this.$queue.showToast("提交成功！")
+					that.wholesale = [];
+					setTimeout(()=>{
+						this.openModal = false;
+						this.model.record = "";
+						that.saleLimit = 0;
+						that.getSaleList();
+						},800)
+				}
+			});
 		},
 		//滑到底部加载更多
 		reachBottom() {
@@ -428,7 +564,10 @@ export default {
 		},
 		
 		totalNum(item) {
-			return item.length;
+			if(item)
+				return item.length;
+			else
+				return 0;
 		},
 		// 价格小数
 		priceDecimal(val) {
@@ -474,6 +613,11 @@ page {
 </style>
 
 <style lang="scss" scoped>
+.slot-content {
+	//font-size: 28rpx;
+	//color: $u-content-color;
+	padding: 30rpx 30rpx 0 30rpx;
+}
 .midRight{
 	position: relative;
 	width: 75%;
@@ -509,7 +653,8 @@ page {
 		padding: 0 20rpx;
 		.left {
 			width: 30%;
-			padding-right: 20rpx;
+			margin-right: 4%;
+			// padding-right: 20rpx;
 			image {
 				width: 200rpx;
 				height: 200rpx;
@@ -593,7 +738,6 @@ page {
 		}
 	}
 	.total {
-		margin-top: 20rpx;
 		text-align: right;
 		font-size: 30rpx;
 		padding: 0 20rpx;
@@ -609,6 +753,9 @@ page {
 		padding: 0 10rpx;
 		justify-content: space-between;
 		align-items: center;
+		justify-content: left;
+		font-size: 30rpx;
+		color: #2979ff;
 		.btn {
 			line-height: 52rpx;
 			width: 160rpx;
@@ -682,6 +829,35 @@ page {
 .u-search-box {
 	background: #ffffff;
 	padding: 18rpx 30rpx;
+}
+.tag {
+	border-radius:  0 100rpx 100rpx 0;
+	font-size: 26rpx;
+	padding: 12rpx 22rpx;
+	box-sizing: border-box;
+	align-items: center;
+	//border-radius: 6rpx;
+	display: table;
+	line-height: 1;
+}
+.hasPay{
+	background-color: $u-type-primary;
+	color: #FFFFFF;
+}
+.noPay{
+	background-color: $u-type-error;
+	color: #FFFFFF;
+}
+.somePay{
+	background-color: $u-type-warning;
+	color: #FFFFFF;
+}
+.region{
+	background-color: $u-type-info-light;
+	color: $u-type-info;
+	border: 1px solid $u-type-info-disabled;
+	border-radius: 0 100rpx 100rpx 0;
+	margin: auto 0 0 0;
 }
 </style>
 

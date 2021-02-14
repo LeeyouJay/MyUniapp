@@ -76,13 +76,16 @@
 			var id = option.id;
 			if(option.isFromShare)
 				uni.removeStorageSync('token');
-			this.token = uni.getStorageSync("token");
-			that.findById(id);
+			setTimeout(()=>{
+				this.token = uni.getStorageSync("token");
+				this.findById(id);
+			},100)
 		},
 		onShareAppMessage() {
 			return {
 				title: that.product.pdName,
-				path: 'pages/my/productInfo?id='+that.product.id+'&isFromShare='+true
+				imageUrl:that.avatar,
+				path: 'pages/front/productInfo?id='+that.product.id+'&isFromShare='+true
 			}
 		},
 		methods: {

@@ -99,7 +99,7 @@
 									<u-icon name="account" :size="40" color="rgb(94,94,94)"></u-icon>
 									<view class="store">{{ res.consumer }}</view>
 								</view>
-								<view class="tag region" >{{res.region}}</view>
+								<!-- <view class="tag region" >{{res.region}}</view> -->
 								<view class="right">{{ res.createTime }}</view>
 							</view>
 							<view class="item" v-for="(item, index) in res.orderDetails" :key="item.id" @click="productInfo(res.orderDetails[index])">
@@ -142,7 +142,7 @@
 							</view>
 							<view class="bottom">
 								联系电话：
-								<text @click="phoneCall(res.phone)">{{res.phone}}</text>
+								<text @click="phoneCall(res.phone)">{{res.phone}}&nbsp;&nbsp;{{res.region}}</text>
 								<!-- <view class="more"><u-icon name="more-dot-fill" color="rgb(203,203,203)"></u-icon></view>
 								<view class="logistics btn">查看物流</view>
 								<view class="exchange btn">卖了换钱</view>

@@ -179,6 +179,7 @@
 		methods: {
 			onName(e){
 				this.model.name = e;
+				this.getPcpPhone(e);
 			},
 			onRemark(e){
 				this.model.remark = e;
@@ -225,6 +226,14 @@
 						}, 1200)
 					}
 				});
+			},
+			getPcpPhone(name){
+				if(!name) return
+				this.$Request.getT('/getPcpPhone/' + name).then(res => {
+					if (res.status == 200) {
+						that.model.phone = res.data
+					}
+				})
 			},
 			radioGroupChange(e) {
 				this.model.payType = e;

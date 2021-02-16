@@ -9,7 +9,7 @@
 			</u-form-item>
 			
 			<u-form-item label="联系电话:" label-width="150" prop="phone" :rightIconStyle="iconStyle" right-icon="phone" >
-				<u-input :disabled="true" placeholder="暂无" v-model="model.phone" type="number"></u-input>
+				<u-input :disabled="true" placeholder="暂无" v-model="model.phone" type="number" @click="phoneCall(model.phone)"></u-input>
 			</u-form-item>
 			
 			<u-form-item label-width="150"  label="总进货额:" prop="totalCost" :rightIconStyle="iconStyle" right-icon="rmb-circle">
@@ -77,6 +77,24 @@
 			this.getByPcpId(option.id)
 		},
 		methods: {
+			phoneCall(phoneNumber){
+				if(phoneNumber=="" || isNaN(phoneNumber)) return
+				uni.setClipboardData({
+				    data: phoneNumber,
+				    success: function () {
+				        console.log("复制到剪切板")
+				    }
+				});
+				uni.makePhoneCall({
+				    phoneNumber: phoneNumber,
+					success: (res) => {
+						console.log("正在拨打电话....")
+					},
+					fail: (e) => {
+						console.log("拨打失败")
+					}
+				});
+			},
 			getByPcpId(id){
 				this.$Request.getT('/getRemittanceByPcpId/' + id).then(res => {
 					if (res.status == 200) {
